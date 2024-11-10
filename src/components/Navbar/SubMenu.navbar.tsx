@@ -15,11 +15,11 @@ export const SubMenuNavbar: React.FC<propsSubMenuNavbar> = ({ categories }) => {
                 <Carousel>
                     <CarouselContent>
                         {categories.map((category, index) => (
-                            <CarouselItem className="basis-3/12" key={index}>
+                            <CarouselItem className="basis-2/12" key={index}>
                                 <DefaultButton
                                     title={`${category.name}`}
                                     link={`/kategori/${category.slug}`}
-                                    className="w-full text-nowrap"
+                                    className="w-full text-nowrap text-sm"
                                     key={index}
                                 />
                             </CarouselItem>
