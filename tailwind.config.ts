@@ -10,7 +10,7 @@ const config: Config = {
             'light-gray': '#d8ddec',
             white: '#ffffff',
             'dark-primary': '#153580',
-            primary: '#549bff',
+            blue: '#549bff',
             'light-primary': '#ECEFF3',
             'white-primary': '#F7F9FD',
             warning: '#ffefdc',
