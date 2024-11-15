@@ -18,7 +18,9 @@ export const LayoutApp = ({ children }: { children: React.ReactNode }) => {
             </Head>
 
             <Navbar />
-            <main className={`${inter.className} relative overflow-x-hidden`}>{children}</main>
+
+            <main className={`${inter.className}`}>{children}</main>
+
             <Footer />
         </>
     );

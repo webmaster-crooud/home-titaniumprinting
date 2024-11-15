@@ -38,13 +38,14 @@ export default function Home({ data }: { data: Data }) {
             <Header />
 
             {/* The best Categories Services */}
-            <section className="w-10/12 mx-auto py-16">
+            <section className="w-10/12 py-16 mx-auto">
                 {/* TItle */}
-                <div className="text-center mb-8">
+                <div className="mb-8 text-center">
                     <h2 className="text-[28px] font-medium">Kategori Paling Laris</h2>
-                    <h5 className="w-8/12 mx-auto text-sm text-gray mt-3 font-light">
-                        Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda menciptakan materi pemasaran yang efektif dan
-                        menarik. Tingkatkan citra bisnis Anda dengan layanan printing yang andal dan tepat waktu!
+                    <h5 className="w-8/12 mx-auto mt-3 text-sm font-light text-gray">
+                        Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda menciptakan
+                        materi pemasaran yang efektif dan menarik. Tingkatkan citra bisnis Anda dengan layanan printing
+                        yang andal dan tepat waktu!
                     </h5>
                 </div>
                 <div className="grid grid-cols-4 gap-5">
@@ -57,7 +58,7 @@ export default function Home({ data }: { data: Data }) {
             </section>
 
             {/* Service's */}
-            <section className="bg-white py-16 grid grid-rows-2 gap-y-8">
+            <section className="grid grid-rows-2 py-16 bg-white gap-y-8">
                 {/* The Best Services */}
                 <ServicesSectionCard
                     bgColor="bg-gradient-to-r from-[#FAFBFF] via-[#F1F5FF] to-[#F1F5FF]"
@@ -65,7 +66,12 @@ export default function Home({ data }: { data: Data }) {
                     link="/"
                     description="Sangat cocok untuk membantu meningkatkan promosi dari produk maupun perusahaan anda!"
                 >
-                    <ServicesCard image="/assets/products/image.png" link="/" title="Kalender Poster" price={`Rp 12.000`} />
+                    <ServicesCard
+                        image="/assets/products/image.png"
+                        link="/produk/buku"
+                        title="Cetak Buku"
+                        price={`Rp 12.000`}
+                    />
                 </ServicesSectionCard>
                 <ServicesSectionCard
                     bgColor="bg-gradient-to-r from-[#E4F8F5] via-[#DAF3F0] to-[#DAF3F0]"
@@ -73,8 +79,13 @@ export default function Home({ data }: { data: Data }) {
                     link="/"
                     description="Sangat cocok untuk membantu meningkatkan promosi dari produk maupun perusahaan anda!"
                 >
-                    <ServicesCard image="/assets/products/image.png" link="/" title="Kalender Poster" price={`Rp 12.000`} />
-                    <ServicesCard link="/" title="Kalender Poster" price={`Rp 12.000`} />
+                    <ServicesCard
+                        image="/assets/products/image.png"
+                        link="/"
+                        title="Kalender Poster"
+                        price={`Rp 12.000`}
+                    />
+                    <ServicesCard link="/produk/buku" title="Kalender Poster" price={`Rp 12.000`} />
                 </ServicesSectionCard>
             </section>
 
@@ -83,19 +94,24 @@ export default function Home({ data }: { data: Data }) {
                 <div className="w-10/12 mx-auto">
                     <div className="mb-8">
                         <h2 className="text-[28px] font-medium mb-3">Eksplor Semua Layanan Printing Kami</h2>
-                        <p className="text-sm leading-6 text-gray w-8/12 font-light">
-                            Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda menciptakan materi pemasaran yang efektif
-                            dan menarik. Tingkatkan citra bisnis Anda dengan layanan printing yang andal dan tepat waktu!
+                        <p className="w-8/12 text-sm font-light leading-6 text-gray">
+                            Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda menciptakan
+                            materi pemasaran yang efektif dan menarik. Tingkatkan citra bisnis Anda dengan layanan
+                            printing yang andal dan tepat waktu!
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-4 min-h-screen border border-light-gray rounded-md overflow-hidden">
-                        <div className="bg-white-primary border-r border-light-gray">
+                    <div className="grid min-h-screen grid-cols-4 overflow-hidden border rounded-md border-light-gray">
+                        <div className="border-r bg-white-primary border-light-gray">
                             <div>
-                                <ServiceList serviceListData={services} serviceListShow={serviceListShow} setServiceListShow={setServiceListShow} />
+                                <ServiceList
+                                    serviceListData={services}
+                                    serviceListShow={serviceListShow}
+                                    setServiceListShow={setServiceListShow}
+                                />
                             </div>
                         </div>
-                        <div className="py-5 px-6 col-span-3">
+                        <div className="col-span-3 px-6 py-5">
                             <ContentServiceList
                                 serviceListData={services}
                                 serviceListShow={serviceListShow}
