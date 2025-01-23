@@ -1,13 +1,24 @@
 export interface Data {
-    categories: Categories[];
+    categories?: Categories[];
     product?: Product;
+    favCategories?: Categories[];
+    services?: Services[];
 }
 
+export interface Services {
+    [x: string]: any;
+    slug: string;
+    name: string;
+    products?: Product[];
+    flag: string;
+}
 export interface Categories {
+    [x: string]: any;
     name: string;
     slug: string;
     flag: string;
     description: string;
+    products?: Product[];
 }
 
 export interface NavBreadcrumbData {
@@ -22,8 +33,6 @@ export interface Product {
     flag: string;
     cover: string;
     description: string;
-    totalPrice: number | string;
-    totalCogs: number | string;
     product_category: {
         categories: {
             name: string;
@@ -35,40 +44,39 @@ export interface Product {
         services: {
             name: string;
             slug: string;
-            category_service: {
-                categories: {
-                    name: string;
-                };
-            }[];
         };
     }[];
-    images: {
-        name: string;
-        source: string;
-    }[];
+    // images: {
+    //     name: string;
+    //     source: string;
+    // }[];
     product_component: {
         minQty: number;
-        typePieces: string;
         component: {
             id: number | string;
             name: string;
-            canIncrise: boolean;
-            price: string | number;
-            description: string;
+            price?: string | number;
+            cogs?: string | number;
             typeComponent: string;
             qualities: {
                 name: string;
-                description: string;
-                orientation: boolean;
                 id: number | string;
-                sizes: {
-                    id: number;
-                    cogs: number;
-                    height: number;
-                    length: number;
-                    price: number;
-                    weight: number;
-                    width: number;
+                price?: number;
+                cogs?: string | number;
+                qualitiesSize: {
+                    sizeId: number;
+                    price: string | number;
+                    cogs?: string | number;
+                    sizes: {
+                        id: number;
+                        cogs: number;
+                        height: number;
+                        length: number;
+                        price: number;
+                        weight: number;
+                        width: number;
+                        name: string;
+                    };
                 }[];
             }[];
         };
@@ -77,47 +85,81 @@ export interface Product {
 
 export type ProductComponent = Product['product_component'];
 
-interface User {
+export interface Customer {
     firstName: string;
     lastName: string;
     phone: string | number;
     email: string;
     address: Address;
-    delivery: {
-        courier: string;
-        price: string | number;
-        resi?: string;
-    };
 }
 
-interface Address {
-    name: string;
+export interface Address {
+    name?: string;
     street: string;
     city: string;
+    cityId: string;
     province: string;
     country?: string;
     postalCode: string;
-    building: string;
+    building?: string;
 }
 
+export interface User {
+    email: string;
+    addressId?: string | number;
+}
+export interface DiscountData {
+    code: string;
+    price?: string | number;
+    percent?: string | number;
+}
 export interface Cart {
-    user?: User;
-    account?: {
-        username: string;
-        addressId: number | string | null;
+    id?: string;
+    email?: string;
+    productId: string;
+    product: {
+        name: string;
+        barcode: string;
+        slug?: string;
+        cover?: string;
+        description?: string;
     };
-    files?: File | null;
-    notes?: string;
-    totalPriceComponent?: number | string;
-    totalWeightComponent?: number | string;
-    totalPrice?: number | string;
-    subTotal?: number | string;
-    totalCogs?: number | string;
-    totalQty?: number;
-    productDetail?: {
-        barcode: string | undefined;
-        productComponent?: ValueComponent[];
+    delivery: {
+        from: string;
+        destination: string;
+        weight: string | number;
+        resi?: string;
+        courier: string;
+        code?: string;
+        etd?: string;
+        service?: string;
+        price: number | string;
     };
+    notes: string;
+    copies: number; // Tambahkan copies
+    files: File[];
+    totalCogs?: number;
+    subTotalPrice: number;
+
+    promotionCode: string;
+    finalTotalPrice: number;
+    discount?: DiscountData;
+    status: string;
+    totalWeight: string | number;
+    productComponent: {
+        componentId: string;
+        componentName: string;
+        qualityId: string | number | null;
+        sizeId: string | number | null;
+        cogs: number;
+        qty: number;
+        price: number;
+        totalPriceComponent: number;
+        totalCogsComponent: number;
+        weight: string | number;
+    }[];
+    user: User;
+    customer: Customer;
 }
 
 export interface ValueComponent {

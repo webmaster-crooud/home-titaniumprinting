@@ -1,40 +1,21 @@
 import { SubMenuNavbar } from '@/components/Navbar/SubMenu.navbar';
-import { BACKEND } from '../../libs/utils';
-import { Categories, Data } from '../../libs/type';
+import { BACKEND, PANEL, PUBLIC } from '../../libs/utils';
+import { Categories, Data, Services } from '../../libs/type';
 import { Header } from '@/components/Header';
 import { CategoriesServiceCard } from '@/components/Card/CategoriesService.card';
 import { ServicesSectionCard } from '@/components/Card/Section/ServicesSection.card';
 import { ServicesCard } from '@/components/Card/Services.card';
 import { ContentServiceList, ServiceList } from '@/components/List/Service.list';
-import { useState } from 'react';
 import { WhyUsSection } from '@/components/Section/WhyUs.section';
 import { ReviewSection } from '@/components/Section/Review.section';
-
-export interface Service {
-    title: string;
-    slug: string;
-    description?: string;
-}
-
-const services: Service[] = [
-    {
-        title: 'Media Promosi',
-        slug: 'media-promosi',
-        description:
-            'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas officiis impedit accusantium ratione eligendi eum eius quisquam veritatis. Deserunt a quia ipsa consectetur autem rem rerum saepe excepturi ex quis!',
-    },
-    {
-        title: 'Baner dan Spanduk',
-        slug: 'baner-dan-spanduk',
-        description:
-            'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas officiis impedit accusantium ratione eligendi eum eius quisquam veritatis. Deserunt a quia ipsa consectetur autem rem rerum saepe excepturi ex quis!',
-    },
-];
+import React, { useState } from 'react';
+import Link from 'next/link';
 export default function Home({ data }: { data: Data }) {
-    const [serviceListShow, setServiceListShow] = useState<Service>(services[0]);
+    const slugSelected = data.services && data.services[0].slug;
+    const [serviceListShow, setServiceListShow] = useState<{ slug: number | string }>({ slug: slugSelected || '' });
     return (
         <>
-            <SubMenuNavbar categories={data.categories} />
+            <SubMenuNavbar />
             <Header />
 
             {/* The best Categories Services */}
@@ -49,11 +30,17 @@ export default function Home({ data }: { data: Data }) {
                     </h5>
                 </div>
                 <div className="grid grid-cols-4 gap-5">
-                    <CategoriesServiceCard
-                        title="Media Promosi"
-                        slug="media-promosi"
-                        description="Membantu meningkatkan promosi dari produk maupun perusahaan anda!"
-                    />
+                    {data.favCategories?.map((fav, idx) => (
+                        <CategoriesServiceCard
+                            key={idx}
+                            title={fav.name}
+                            slug={`/kategori/${fav.slug}`}
+                            description={
+                                fav.description ||
+                                'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Nostrum deleniti dicta quos.'
+                            }
+                        />
+                    ))}
                 </div>
             </section>
 
@@ -62,30 +49,41 @@ export default function Home({ data }: { data: Data }) {
                 {/* The Best Services */}
                 <ServicesSectionCard
                     bgColor="bg-gradient-to-r from-[#FAFBFF] via-[#F1F5FF] to-[#F1F5FF]"
-                    title="Layanan terlaris untuk kebutuhan Promosi"
-                    link="/"
+                    title={`Layanan terlaris untuk kebutuhan ${data.services && data.services[0].name}`}
+                    link={`/layanan/${data.services && data.services[0].slug}`}
                     description="Sangat cocok untuk membantu meningkatkan promosi dari produk maupun perusahaan anda!"
                 >
-                    <ServicesCard
-                        image="/assets/products/image.png"
-                        link="/produk/buku"
-                        title="Cetak Buku"
-                        price={`Rp 12.000`}
-                    />
+                    {data.services &&
+                        data.services[0].products?.map((product, index) => (
+                            <ServicesCard
+                                image={product.cover && `${PUBLIC}/cover/${product.cover}`}
+                                link={'/produk/' + product.slug}
+                                title={product.name}
+                                description={product.description}
+                                key={index}
+                            />
+                        ))}
                 </ServicesSectionCard>
                 <ServicesSectionCard
                     bgColor="bg-gradient-to-r from-[#E4F8F5] via-[#DAF3F0] to-[#DAF3F0]"
-                    title="Layanan terlaris untuk kebutuhan Souvenir"
-                    link="/"
+                    title={`Layanan terlaris untuk kebutuhan ${data.services && data.services[1].name}`}
+                    link={`/layanan/${data.services && data.services[1].slug}`}
                     description="Sangat cocok untuk membantu meningkatkan promosi dari produk maupun perusahaan anda!"
                 >
-                    <ServicesCard
-                        image="/assets/products/image.png"
-                        link="/"
-                        title="Kalender Poster"
-                        price={`Rp 12.000`}
-                    />
-                    <ServicesCard link="/produk/buku" title="Kalender Poster" price={`Rp 12.000`} />
+                    {data.services && data.services[1].products?.length === 0 ? (
+                        <ServicesCard link="/404" title="Data tidak ditemukan" description={`Data masih kosong!`} />
+                    ) : (
+                        data.services &&
+                        data.services[1].products?.map((product, index) => (
+                            <ServicesCard
+                                image={product.cover && `${PUBLIC}/cover/${product.cover}`}
+                                link={'/produk/' + product.slug}
+                                title={product.name}
+                                description={product.description}
+                                key={index}
+                            />
+                        ))
+                    )}
                 </ServicesSectionCard>
             </section>
 
@@ -93,19 +91,29 @@ export default function Home({ data }: { data: Data }) {
             <section className="py-16 bg-white">
                 <div className="w-10/12 mx-auto">
                     <div className="mb-8">
-                        <h2 className="text-[28px] font-medium mb-3">Eksplor Semua Layanan Printing Kami</h2>
-                        <p className="w-8/12 text-sm font-light leading-6 text-gray">
-                            Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda menciptakan
-                            materi pemasaran yang efektif dan menarik. Tingkatkan citra bisnis Anda dengan layanan
-                            printing yang andal dan tepat waktu!
-                        </p>
+                        <div className="flex items-end justify-between">
+                            <div>
+                                <h2 className="text-[28px] font-medium mb-3">Eksplor Semua Layanan Printing Kami</h2>
+                                <p className="w-8/12 text-sm font-light leading-6 text-gray">
+                                    Dengan berbagai opsi kustomisasi dan teknologi terbaru, kami siap membantu Anda
+                                    menciptakan materi pemasaran yang efektif dan menarik. Tingkatkan citra bisnis Anda
+                                    dengan layanan printing yang andal dan tepat waktu!
+                                </p>
+                            </div>
+                            <Link
+                                href={'/produk'}
+                                className="px-4 py-2 font-medium text-white transition-all duration-300 ease-in-out rounded-lg bg-dark-primary text-nowrap hover:scale-95"
+                            >
+                                Lihat Semua Layanan
+                            </Link>
+                        </div>
                     </div>
 
                     <div className="grid min-h-screen grid-cols-4 overflow-hidden border rounded-md border-light-gray">
                         <div className="border-r bg-white-primary border-light-gray">
                             <div>
                                 <ServiceList
-                                    serviceListData={services}
+                                    serviceListData={data.services}
                                     serviceListShow={serviceListShow}
                                     setServiceListShow={setServiceListShow}
                                 />
@@ -113,9 +121,10 @@ export default function Home({ data }: { data: Data }) {
                         </div>
                         <div className="col-span-3 px-6 py-5">
                             <ContentServiceList
-                                serviceListData={services}
+                                serviceListData={data && data.services}
                                 serviceListShow={serviceListShow}
-                                setServiceListShow={setServiceListShow}
+                                // serviceListShow={serviceListShow}
+                                // setServiceListShow={setServiceListShow}
                             />
                         </div>
                     </div>
@@ -132,12 +141,37 @@ export default function Home({ data }: { data: Data }) {
 }
 
 export async function getStaticProps() {
-    const response = await fetch(`${BACKEND}/categories`);
+    const response = await fetch(`${BACKEND}/home`);
     const result = await response.json();
-    const categories: Categories[] = result.data;
+    const categories: Categories[] = result.data.categories.map((data: Categories) => ({
+        name: data.name,
+        flag: data.flag,
+        slug: data.slug,
+        description: data.description,
+        products: data.category_product.map(({ products }: { products: any }) => ({
+            name: products.name,
+            slug: products.slug,
+            flag: products.flag,
+            cover: products.cover,
+        })),
+    }));
+    const favCategories: Categories[] = result.data.favCategories;
+    const services: Services[] = result.data.services.map((data: Services) => ({
+        name: data.name,
+        flag: data.flag,
+        slug: data.slug,
+        products: data.service_product.map(({ products }: { products: any }) => ({
+            name: products.name,
+            slug: products.slug,
+            description: products.description,
+            cover: products.cover,
+        })),
+    }));
 
     const data: Data = {
         categories,
+        favCategories,
+        services,
     };
 
     return {
