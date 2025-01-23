@@ -1,37 +1,22 @@
-import { Product, ValueComponent } from './type';
-export function mapCartToProductDetails(
-    cart: ValueComponent[],
-    product: Product,
-): (ValueComponent & {
-    componentName: string;
-    qualityName: string;
-    sizePrice: number | null;
-    componentPrice: number | null | string;
-})[] {
+import { Cart } from './type';
+
+export function mapCartToProductDetails(cart: Cart['productComponent']) {
     return cart.map((cartItem) => {
-        // Cari komponen yang sesuai berdasarkan componentId
-        const productComponent = product.product_component.find(
-            (comp) => String(comp.component.id) === cartItem.componentId,
-        );
-
-        if (!productComponent)
-            return { ...cartItem, componentName: '', qualityName: '', sizePrice: null, componentPrice: null };
-
-        const { component } = productComponent;
-
-        // Cari kualitas yang sesuai berdasarkan qualityId
-        const quality = component.qualities.find((q) => Number(q.id) === Number(cartItem.qualityId)) || null;
-
-        // Cari ukuran yang sesuai berdasarkan sizeId
-        const size = quality?.sizes.find((s) => Number(s.id) === Number(cartItem.sizeId)) || null;
+        // Ambil data yang diperlukan
+        const componentName = cartItem.componentName;
+        const qualityName = cartItem.qualityId ? `Kualitas: ${cartItem.qualityId}` : '';
+        const sizeName = cartItem.sizeId ? `Size: ${cartItem.sizeId}` : '';
+        const price = Number(cartItem.price) || 0; // Harga per item
+        const qty = Number(cartItem.qty) || 0; // Jumlah kuantitas
+        const totalPrice = Number(cartItem.totalPriceComponent) || 0; // Total harga (price * qty)
 
         return {
-            ...cartItem,
-            componentName: component.name,
-            componentPrice: component?.price || null,
-            qualityName: quality?.name || '',
-            sizePrice: size?.price || null,
-            totalPriceComponent: (size?.price || 0) * cartItem.qty,
+            componentName, // Nama produk
+            qualityName, // Kualitas (jika ada)
+            sizeName, // Size (jika ada)
+            price, // Harga per item
+            qty, // Jumlah kuantitas
+            totalPrice, // Total harga (price * qty)
         };
     });
 }

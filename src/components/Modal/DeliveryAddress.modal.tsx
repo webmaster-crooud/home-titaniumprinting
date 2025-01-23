@@ -1,474 +1,250 @@
-import { IconArrowBack, IconLoader3, IconLogin2, IconX } from '@tabler/icons-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BACKEND, formatCurrency, formatDateTIme } from '../../../libs/utils';
-import { Cart, Product } from '../../../libs/type';
-import Select from 'react-select';
+import { useAtom } from 'jotai';
+import { cartAtom } from '../../../store/Atom';
+import React, { SetStateAction, useState, useEffect } from 'react'; // Tambahkan useEffect
+import { DefaultCard } from '../Card';
+import { IconCheck, IconLoader3, IconTruck, IconTruckDelivery, IconX } from '@tabler/icons-react';
+import { BACKEND, formatCurrency } from '../../../libs/utils';
 
-interface Address {
-    city_id: string;
-    province_id: string;
-    province: string;
-    type: string;
-    city_name: string;
-    postal_code: string;
-}
+type propsDeliveryAddressModal = {
+    modal?: {
+        field: string;
+    };
+    setModal: React.Dispatch<SetStateAction<{ field: string } | undefined>>;
+};
 
-interface Delivery {
+interface CostDelivery {
     code: string;
     name: string;
     costs: {
         service: string;
         description: string;
         cost: {
-            value: number | string;
+            value: string;
             etd: string;
+            note: string;
         }[];
     }[];
 }
 
-export const ModalDeliveryAddress = ({
-    product,
-    cart,
-    setCart,
-    modalDelivery,
-    setModalDelivery,
-}: {
-    product?: Product;
-    cart?: Cart;
-    modalDelivery: boolean;
-    setModalDelivery: any;
-    setCart: any;
-}) => {
-    const [formAddress, setFormAddress] = useState(false);
-    const [address, setAddress] = useState<Address[]>([]);
-    const [firstName, setFirstName] = useState<string>('');
-    const [lastName, setLastName] = useState<string>('');
-    const [phone, setPhone] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
-    const [name, setName] = useState<string>('');
-    const [building, setBuilding] = useState<string>('');
-    const [street, setStreet] = useState<string>('');
-    const [city, setCity] = useState<{ value: string; label: string }>({ value: '', label: '' });
-    const [province, setProvince] = useState<{ value: string; label: string }>({ value: '', label: '' });
-    const [postalCode, setPostalCode] = useState<string>('');
-    const [courier, setCourier] = useState<{ value: string; label: string }>({ value: '', label: '' });
-    const [loading, setLoading] = useState(false);
-    const [delivery, setDelivery] = useState<Delivery[] | undefined>(undefined);
-    const [deliverSelected, setDeliverySelected] = useState<{ courier: string; price: number }>({
-        courier: '',
-        price: 0,
-    });
+interface DataCourier {
+    value: string;
+    name: string;
+}
 
-    useEffect(() => {
-        const fetchAddress = async () => {
-            try {
-                const response = await fetch(`${BACKEND}/rajaongkir/city`);
-                const { data } = await response.json();
-                setAddress(data);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        fetchAddress();
-    }, []);
+export const DeliveryAddressModal: React.FC<propsDeliveryAddressModal> = ({ modal, setModal }) => {
+    const [cart, setCart] = useAtom(cartAtom);
+    const [costDelivery, setCostDelivery] = useState<CostDelivery[]>([]);
+    const [loading, setLoading] = useState<{ field: string } | undefined>(undefined);
+    const [selectedCourier, setSelectedCourier] = useState<{
+        courier: string;
+        code?: string;
+        etd?: string;
+        service?: string;
+        price: string | number;
+    }>({ courier: '', code: '', etd: '', service: '', price: '' });
 
-    const optionsCity = address.map((address) => ({
-        value: address.city_id,
-        label: `${address.type} ${address.city_name}`,
-    }));
-    const optionsProvince = address.map((address) => ({
-        value: address.province_id,
-        label: `${address.province}`,
-    }));
-    const optionsCourier = [
-        { value: 'jne', label: 'JNE' },
-        { value: 'pos', label: 'POS Indonesia' },
-        { value: 'tiki', label: 'TIKI' },
+    const dataCourier: DataCourier[] = [
+        {
+            value: 'pos',
+            name: 'POS Indonesia',
+        },
+        {
+            value: 'tiki',
+            name: 'TIKI',
+        },
+        {
+            value: 'jne',
+            name: 'JNE',
+        },
     ];
 
-    const handlerChangeCity = (values: any) => {
-        setCity(values);
-    };
-
-    const handlerChangeProvince = (values: any) => {
-        setProvince(values);
-    };
-
-    const handlerChangeCourier = (values: any) => {
-        setCourier(values);
-    };
-
-    let weight = Number(cart?.totalWeightComponent);
-    if (weight) {
-        if (weight < 1) {
-            weight = 1;
-        } else {
-            weight = Number(cart?.totalWeightComponent);
-        }
-    }
-    const handlerCheckOngkir = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(
-                `${BACKEND}/rajaongkir/delivery/444/${city.value}/${weight}/${courier.value}`,
-                {
-                    method: 'POST',
-                },
-            );
-
-            const { data } = await response.json();
-            setDelivery(data);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlerSelectDelivery = (courier: string, price: number) => {
-        setDeliverySelected({
-            courier: courier,
-            price: price,
-        });
-    };
-
-    let cartRef = useRef(cart);
-    cartRef.current = cart;
-    let currentSubTotal = cart?.subTotal;
-    const totalPrice = Number(currentSubTotal) + Number(deliverSelected.price);
+    // Efek untuk mengatur overflow body saat modal terbuka
     useEffect(() => {
+        if (modal?.field === 'delivery') {
+            document.body.style.overflow = 'hidden'; // Nonaktifkan scrolling pada body
+        } else {
+            document.body.style.overflow = 'auto'; // Aktifkan kembali scrolling pada body
+        }
+
+        // Cleanup effect
+        return () => {
+            document.body.style.overflow = 'auto'; // Pastikan scrolling diaktifkan kembali saat komponen unmount
+        };
+    }, [modal]);
+
+    const handleCheckDelivery = async (courier: string) => {
+        setLoading({ field: 'checkDelivery' });
+        try {
+            const weight = Number(cart.delivery.weight);
+            const destination = cart.customer.address.cityId;
+            if (!weight || weight === 0) {
+                console.error('Berat Barang Kurang');
+            }
+            if (!destination) {
+                console.error('Tujuan anda belum ditentukan!');
+            }
+            const from = 444;
+            const response = await fetch(`${BACKEND}/rajaongkir/delivery/${from}/${destination}/${weight}/${courier}`, {
+                method: 'POST',
+            });
+            const { data }: { data: CostDelivery[] } = await response.json();
+            setCostDelivery(
+                data.map((delivery) => ({
+                    code: delivery.code,
+                    name: delivery.name,
+                    costs: delivery.costs.map((cost) => ({
+                        service: cost.service,
+                        description: cost.description,
+                        cost: cost.cost.map((c) => ({
+                            value: c.value,
+                            etd: c.etd,
+                            note: c.note,
+                        })),
+                    })),
+                })),
+            );
+            setCart({ ...cart, delivery: { ...cart.delivery, courier: courier } });
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(undefined);
+        }
+    };
+
+    const handleSelectedCourier = (etd: string, service: string, price: string | number) => {
+        setSelectedCourier({
+            ...selectedCourier,
+            code: costDelivery[0].code,
+            courier: costDelivery[0].name,
+            service,
+            price,
+            etd,
+        });
         setCart({
-            ...cartRef.current,
-            totalPrice: Number(totalPrice),
-            user: {
-                firstName,
-                lastName,
-                phone,
-                email,
-                address: {
-                    street,
-                    city: city.label,
-                    province: province.label,
-                    name,
-                    building,
-                    postalCode,
-                },
-                delivery: {
-                    courier: deliverSelected.courier,
-                    price: Number(deliverSelected.price),
-                },
+            ...cart,
+            finalTotalPrice: Number(cart.subTotalPrice) + Number(price),
+            delivery: {
+                ...cart.delivery,
+                from: '444',
+                destination: cart.customer.address.cityId,
+                etd,
+                price: price,
+                service: service,
             },
         });
-    }, [
-        building,
-        firstName,
-        lastName,
-        phone,
-        email,
-        street,
-        city,
-        province,
-        name,
-        postalCode,
-        setCart,
-        cartRef,
-        deliverSelected,
-        totalPrice,
-    ]);
+        setModal(undefined);
+    };
 
+    console.log(cart);
+    console.log(selectedCourier);
+    console.log(costDelivery);
     return (
         <>
             <button
                 type="button"
-                onClick={() => setModalDelivery(true)}
-                className="w-full px-6 py-4 font-medium text-center text-white border rounded-md bg-dark-primary border-dark-primary"
+                onClick={() => {
+                    if (!cart.customer.address.cityId) {
+                        console.error('Kota Masih Kosong');
+                    } else {
+                        setModal({ field: 'delivery' });
+                    }
+                }}
+                className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-dark-primary"
             >
-                Checkout
+                <div className="flex items-center justify-center gap-2">
+                    <IconTruckDelivery size={16} stroke={2} /> <span>Pengiriman</span>
+                </div>
             </button>
-
-            {/* Modal */}
-            {modalDelivery && (
-                <div className="fixed top-0 left-0 right-0 z-10 flex items-start justify-center w-full h-screen pt-10 overflow-y-scroll bg-dark/10 backdrop-blur-sm">
-                    {formAddress ? (
-                        <div className="w-6/12 px-10 py-5 mx-auto border shadow-lg rounded-xl border-light-gray bg-white-primary gap-y-3">
-                            <div className="flex items-center justify-between">
-                                <h5 className="text-lg font-medium text-dark-primary">Data Alamat Pengiriman</h5>
-                                <button type="button" onClick={() => setModalDelivery(false)}>
-                                    <IconX size={25} className="text-dark" />
-                                </button>
+            {modal?.field === 'delivery' && (
+                <section className="fixed top-0 bottom-0 left-0 right-0 z-30 flex items-center justify-center w-full min-h-screen bg-dark/10 backdrop-blur-md">
+                    <div className="relative w-11/12 max-h-[90vh] overflow-y-auto bg-white rounded-lg p-5">
+                        <div className="flex items-center justify-between">
+                            <h5 className="font-semibold text-dark-primary">Pengiriman</h5>
+                            <button type="button" onClick={() => setModal(undefined)}>
+                                <IconX stroke={2.5} size={25} />
+                            </button>
+                        </div>
+                        <div className="relative">
+                            <select
+                                disabled={loading?.field === 'checkDelivery'}
+                                name="courier"
+                                className="w-full px-4 py-2 my-5 text-sm border rounded-lg outline-none appearance-none bg-light-primary border-light-gray"
+                                value={cart.delivery.courier || ''}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                    handleCheckDelivery(e.target.value)
+                                }
+                            >
+                                <option value="" disabled>
+                                    Pilih Kurir Pengiriman
+                                </option>
+                                {dataCourier.map((courier, index) => (
+                                    <option value={courier.value} key={index}>
+                                        {courier.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                {loading?.field === 'checkDelivery' ? (
+                                    <IconLoader3 className={`animate-spin text-gray-500`} size={20} />
+                                ) : (
+                                    <div className="flex items-center justify-end gap-1">
+                                        <h3 className="text-xs text-gray">{costDelivery[0]?.name}</h3>
+                                        <IconTruck size={20} className="text-gray-500" />
+                                    </div>
+                                )}
                             </div>
+                        </div>
 
-                            <h1 className="text-sm font-medium text-gray">
-                                Produk: <span className="font-normal">{product?.name}</span>
-                            </h1>
-                            <p className="text-sm font-medium text-gray">
-                                Tanggal: <span className="font-normal">{formatDateTIme(new Date())}</span>
-                            </p>
-                            <p className="text-sm font-medium text-gray">
-                                Berat: <span className="font-normal">{weight} Kg</span>
-                            </p>
-
-                            {delivery ? (
-                                <div className="py-3 mt-5 border-t border-light-gray">
-                                    <div className="flex items-center justify-between">
-                                        <h6 className="font-medium">Kurir</h6>
-                                        <button
-                                            onClick={() => {
-                                                setFormAddress(true), setDelivery(undefined);
-                                            }}
-                                            type="button"
-                                            className="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-danger text-white-primary"
-                                        >
-                                            <IconArrowBack size={16} stroke={2} />
-                                            <span className="text-xs font-medium">Kembali</span>
-                                        </button>
-                                    </div>
-
-                                    {delivery.map((delivery, index) => (
-                                        <div
-                                            className="p-5 mt-3 bg-white border rounded-lg shadow-md border-light-gray"
-                                            key={index}
-                                        >
-                                            <p className="mb-3 text-sm font-medium text-dark-primary">
-                                                {delivery.name}
-                                            </p>
-                                            {delivery.costs.map((cost, index) => (
-                                                <React.Fragment key={index}>
-                                                    <div className="flex items-center justify-between w-full mb-2">
-                                                        <p className="text-sm font-medium text-dark-primary">
-                                                            {cost.service}
-                                                        </p>
-                                                        <p className="text-xs text-gray">{cost.description}</p>
-                                                    </div>
-                                                    {cost.cost.map((price, index) => (
-                                                        <button
-                                                            key={index}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                handlerSelectDelivery(
-                                                                    `${delivery.name} - ${cost.service} (${cost.description})`,
-                                                                    Number(price.value),
-                                                                );
-                                                                setModalDelivery(false);
-                                                            }}
-                                                            className="flex items-center justify-between w-full px-3 py-2 mb-5 border rounded-md border-light-gray"
-                                                        >
-                                                            <p>{formatCurrency.format(Number(price.value))}</p>
-                                                            <p>{`(${price.etd}) Hari`}</p>
-                                                        </button>
-                                                    ))}
-                                                </React.Fragment>
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="grid items-center justify-center grid-cols-2 gap-5 mt-5">
-                                    <div className="w-full">
-                                        <label htmlFor="firstName" className="text-sm text-dark">
-                                            Nama Depan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            required
-                                            placeholder="Jhon"
-                                            autoComplete="off"
-                                            name="firstName"
-                                            value={firstName}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setFirstName(e.target.value)
-                                            }
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="lastName" className="text-sm text-dark">
-                                            Nama Belakang
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            placeholder="Doe"
-                                            autoComplete="off"
-                                            name="lastName"
-                                            value={lastName}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setLastName(e.target.value)
-                                            }
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="nameAddress" className="text-sm text-dark">
-                                            Nama Alamat
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            placeholder="Rumah, kantor, pabrik..."
-                                            autoComplete="off"
-                                            name="nameAddress"
-                                            value={name}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setName(e.target.value)
-                                            }
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="building" className="text-sm text-dark">
-                                            Tanda/Catatan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            placeholder="Dekat..."
-                                            autoComplete="off"
-                                            name="building"
-                                            value={building}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setBuilding(e.target.value)
-                                            }
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="streetAddress" className="text-sm text-dark">
-                                            Alamat
-                                        </label>
-                                        <input
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            name="street"
-                                            autoComplete="off"
-                                            placeholder="Jalan..."
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setStreet(e.target.value)
-                                            }
-                                            value={street}
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="cityAddress" className="text-sm text-dark">
-                                            Kota/Kabupaten
-                                        </label>
-                                        <Select
-                                            options={optionsCity}
-                                            className="mt-1"
-                                            onChange={handlerChangeCity}
-                                            value={city}
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="provinceAddress" className="text-sm text-dark">
-                                            Provinsi
-                                        </label>
-                                        <Select
-                                            options={optionsProvince}
-                                            className="mt-1"
-                                            onChange={handlerChangeProvince}
-                                            value={province}
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="postalCode" className="text-sm text-dark">
-                                            Kode Pos
-                                        </label>
-                                        <input
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            name="postal_code"
-                                            autoComplete="off"
-                                            placeholder="-----"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setPostalCode(e.target.value)
-                                            }
-                                            value={postalCode}
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="phone" className="text-sm text-dark">
-                                            Telphone/Whatsapp
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            placeholder="------------"
-                                            autoComplete="off"
-                                            name="phone"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setPhone(e.target.value)
-                                            }
-                                            value={phone}
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label htmlFor="email" className="text-sm text-dark">
-                                            Email
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="w-full px-3 py-1.5 mt-1 bg-white border rounded-[0.20rem] border-gray/40 outline-dark-primary"
-                                            placeholder="jhondoe@mail.com"
-                                            autoComplete="off"
-                                            name="email"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setEmail(e.target.value)
-                                            }
-                                            value={email}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-center w-full gap-5">
-                                        <label htmlFor="courierAddress" className="text-sm text-dark">
-                                            Kurir
-                                        </label>
-                                        <Select
-                                            className="w-full"
-                                            options={optionsCourier}
-                                            onChange={handlerChangeCourier}
-                                            value={courier}
-                                        />
-                                    </div>
+                        {costDelivery.length !== 0 && (
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                {costDelivery[0]?.costs.map((cost, idxCost) => (
                                     <button
                                         type="button"
-                                        onClick={handlerCheckOngkir}
-                                        className="px-3 py-2 font-medium rounded bg-dark-primary text-white-primary"
-                                        disabled={loading}
+                                        key={idxCost}
+                                        className={`flex items-start bg-light-primary justify-between px-5 py-3 border rounded-lg  text-start relative ${
+                                            selectedCourier.code === costDelivery[0].code &&
+                                            selectedCourier.service === cost.service &&
+                                            selectedCourier.price &&
+                                            cost.cost[0].value &&
+                                            selectedCourier.etd &&
+                                            cost.cost[0].etd
+                                                ? 'border-blue'
+                                                : 'border-light-gray'
+                                        }`}
+                                        onClick={() =>
+                                            handleSelectedCourier(cost.cost[0].etd, cost.service, cost.cost[0].value)
+                                        }
                                     >
-                                        {loading ? (
-                                            <div className="flex items-center justify-center gap-1">
-                                                <IconLoader3 size={16} stroke={2} className="animate-spin" />
-                                                <span>Loading...</span>
+                                        {selectedCourier.code === costDelivery[0].code &&
+                                        selectedCourier.service === cost.service &&
+                                        selectedCourier.price &&
+                                        cost.cost[0].value &&
+                                        selectedCourier.etd &&
+                                        cost.cost[0].etd ? (
+                                            <div className="absolute flex items-center justify-center w-5 h-5 border-2 rounded-full -top-2 -right-2 border-blue bg-blue">
+                                                <IconCheck className="text-light-primary" size={14} stroke={2.5} />
                                             </div>
                                         ) : (
-                                            'Selanjutnya'
+                                            ''
                                         )}
+                                        <div>
+                                            <p className="text-sm font-semibold text-dark-primary">{cost.service}</p>
+                                            <p className="text-xs text-gray">{cost.description}</p>
+                                        </div>
+                                        {cost.cost.map((c, idxC) => (
+                                            <div key={idxC}>
+                                                <p className="text-sm font-semibold text-blue">
+                                                    {formatCurrency.format(Number(c.value))} (
+                                                    {c.etd.replace('HARI', '')} Hari)
+                                                </p>
+                                            </div>
+                                        ))}
                                     </button>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col w-3/12 px-10 py-5 mx-auto text-center border shadow-lg rounded-xl border-light-gray bg-white-primary gap-y-3">
-                            <h5 className="text-lg font-medium">Lanjutkan Transaksi?</h5>
-                            <button
-                                onClick={() => setFormAddress(true)}
-                                type="button"
-                                className="block w-full px-5 py-3 font-medium rounded-lg bg-dark-primary text-white-primary"
-                            >
-                                Pengisian Alamat
-                            </button>
-                            <button className="block w-full px-5 py-3 font-medium border rounded-lg bg-white-primary text-dark-primary border-light-gray">
-                                <div className="flex items-center justify-center gap-1">
-                                    <IconLogin2 size={18} stroke={1.7} /> <span>Masuk</span>
-                                </div>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setModalDelivery(false)}
-                                className="block w-full px-5 py-3 font-medium rounded-lg bg-danger text-white-primary"
-                            >
-                                <div className="flex items-center justify-center gap-1">
-                                    <IconArrowBack size={18} stroke={1.7} /> <span>Batal</span>
-                                </div>
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </section>
             )}
         </>
     );

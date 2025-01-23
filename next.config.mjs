@@ -10,7 +10,7 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'http', // atau 'https' sesuai protokol backend Anda
-                hostname: '127.0.0.1',
+                hostname: 'localhost',
                 port: '3001',
                 pathname: '/public/**', // Path yang diizinkan
             },
@@ -25,6 +25,14 @@ const nextConfig = {
 
     async rewrites() {
         return [
+            {
+                source: '/member',
+                destination: '/users',
+            },
+            {
+                source: '/member/keranjang',
+                destination: '/users/cart',
+            },
             {
                 source: '/produk',
                 destination: '/products',

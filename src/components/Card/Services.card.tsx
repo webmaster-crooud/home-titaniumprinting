@@ -7,14 +7,14 @@ type propsServicesCard = {
     link: string;
     image?: string;
     title: string;
-    price: number | string;
+    description: number | string | null;
 };
 
-export const ServicesCard: React.FC<propsServicesCard> = ({ link, image, title, price }) => {
+export const ServicesCard: React.FC<propsServicesCard> = ({ link, image, title, description }) => {
     return (
         <Link
             href={link}
-            className="w-full rounded-md overflow-hidden border border-light-gray shadow transition-all ease-in-out duration-300 hover:shadow-lg hover:scale-105"
+            className="w-full overflow-hidden transition-all duration-300 ease-in-out border rounded-md shadow border-light-gray hover:shadow-lg hover:scale-105"
         >
             {image ? (
                 <Image
@@ -28,16 +28,16 @@ export const ServicesCard: React.FC<propsServicesCard> = ({ link, image, title, 
             ) : (
                 <>
                     <div className="w-full flex items-center justify-center max-h-[209px] h-[209px] bg-light-primary">
-                        <div className="flex flex-col justify-center items-center">
+                        <div className="flex flex-col items-center justify-center">
                             <IconPhotoOff size={50} stroke={2} className="text-dark-primary" />
-                            <p className="text-dark-primary font-medium text-sm">No Images</p>
+                            <p className="text-sm font-medium text-dark-primary">No Images</p>
                         </div>
                     </div>
                 </>
             )}
-            <div className="h-24 max-h-full w-full bg-white p-4">
-                <h4 className="font-medium text-base mb-3">{title}</h4>
-                <p className="text-gray text-sm font-light">Start from {price}</p>
+            <div className="w-full h-full p-4 bg-white min-h-24">
+                <h4 className="mb-3 text-base font-medium">{title}</h4>
+                <p className="text-sm font-light text-gray">{description}</p>
             </div>
         </Link>
     );
