@@ -206,11 +206,10 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
                             <div className="flex items-end justify-between">
                                 <div className="flex items-center justify-start gap-2">
                                     <h5 className="font-semibold text-dark">{pc.component.name}</h5>
-                                    <Tooltip title={pc.component.typeComponent} size="small" arrow>
-                                        <div className="flex items-center justify-center w-6 h-6 border-2 rounded-full border-light-gray">
-                                            <IconQuestionMark size={16} stroke={3} className="text-gray" />
-                                        </div>
-                                    </Tooltip>
+                                    <div className="flex items-center justify-center w-6 h-6 border-2 rounded-full border-light-gray">
+                                        <Tooltip title={pc.component.typeComponent} size="small" arrow />
+                                        <IconQuestionMark size={16} stroke={3} className="text-gray" />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-gray">Jumlah Kuantitas</label>
