@@ -1,441 +1,399 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Cart, Product } from '../../../libs/type';
-import 'react-tippy/dist/tippy.css';
+import React, { useState } from 'react';
+import { Product } from '../../../libs/type';
+import {
+    IconChevronDown,
+    IconCircle,
+    IconCircleFilled,
+    IconMinus,
+    IconPlus,
+    IconQuestionMark,
+} from '@tabler/icons-react';
 import { Tooltip } from 'react-tippy';
-import { IconCloudUpload, IconHelpCircle, IconX } from '@tabler/icons-react';
+import 'react-tippy/dist/tippy.css';
+import { useAtom } from 'jotai';
 import { formatCurrency } from '../../../libs/utils';
-import Link from 'next/link';
+import { usePriceCalculator } from './PriceCalculator';
+import { cartAtom } from '../../../store/Atom';
 
-type propsProductForm = {
-    product?: Product;
-    cart?: Cart;
-    setCart: React.Dispatch<React.SetStateAction<Cart>>;
-    barcode: string;
+type PropsProductForm = {
+    productComponent: Product['product_component'];
 };
 
-interface ValueComponent {
-    componentId: string;
-    qualityId: string | number | null;
-    sizeId: string | number | null;
-    qty: number;
-    totalPriceComponent: number;
-    totalWeightComponent: number;
-}
+export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) => {
+    const [cart, setCart] = useAtom(cartAtom);
+    console.log(cart); // Debugging
 
-export const ProductForm: React.FC<propsProductForm> = ({ product, cart, setCart, barcode }) => {
-    const [valueComponent, setValueComponent] = useState<ValueComponent[]>(
-        product?.product_component.map((productComponent) => {
-            const price = productComponent.component.price;
-            const qty = productComponent.minQty;
-
-            // Menghitung totalPriceComponent berdasarkan harga dan qty
-            const totalPriceComponent = price ? Number(price) * qty : 0;
-            const totalWeightComponent = 0;
-            return {
-                componentId: String(productComponent.component.id),
-                qualityId: null,
-                sizeId: null,
-                qty: qty,
-                totalPriceComponent: totalPriceComponent,
-                totalWeightComponent: totalWeightComponent,
-            };
-        }) || [],
-    );
-    const [notes, setNotes] = useState<string>('');
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [fileError, setFileError] = useState<string>('');
-    const [totalQty, setTotalQty] = useState<number>(1);
-
-    const handleChangeQty = useCallback(
-        (index: number, qty: number) => {
-            setValueComponent((prevValueComponent) =>
-                prevValueComponent.map((item, idx) => {
-                    if (idx === index) {
-                        const componentData = product?.product_component.find(
-                            (pc) => pc.component.id === item.componentId,
-                        );
-                        const quality = componentData?.component.qualities.find((q) => q.id === item.qualityId);
-                        const size = quality?.sizes.find((s) => s.id === item.sizeId);
-                        let componentPrice = 0;
-                        if (size?.price) {
-                            componentPrice =
-                                Number(componentData?.component.price ? componentData.component.price : size.price) *
-                                qty;
-                        }
-                        let componentWeigth = 0;
-                        if (size?.weight) {
-                            componentWeigth = Number(size.weight) * qty;
-                        }
-                        return {
-                            ...item,
-                            qty,
-                            totalPriceComponent: componentPrice,
-                            totalWeightComponent: componentWeigth,
-                        };
-                    }
-                    return item;
-                }),
-            );
-        },
-        [product],
+    const [qty, setQty] = useState(
+        productComponent.map((pc, index) => ({
+            id: index,
+            productBarcode: cart.product.barcode,
+            value: pc.minQty,
+        })),
     );
 
-    const handleChangeQuality = useCallback((componentIndex: number, qualityId: number | null) => {
-        setValueComponent((prevComponents) =>
-            prevComponents.map((component, index) =>
-                index === componentIndex
-                    ? { ...component, qualityId, sizeId: null, totalPriceComponent: 0, totalWeightComponent: 0 }
-                    : component,
-            ),
-        );
-    }, []);
-
-    const handleChangeSize = useCallback(
-        (componentIndex: number, sizeId: number | null, price: number) => {
-            setValueComponent((prevComponents) =>
-                prevComponents.map((component, index) => {
-                    if (index === componentIndex) {
-                        const componentData = product?.product_component.find(
-                            (pc) => pc.component.id === component.componentId,
-                        );
-                        const quality = componentData?.component.qualities.find((q) => q.id === component.qualityId);
-                        const size = quality?.sizes.find((s) => s.id === sizeId);
-                        let componentPrice = 0;
-                        if (size?.price) {
-                            componentPrice =
-                                Number(componentData?.component.price ? componentData.component.price : size.price) *
-                                component.qty;
-                        }
-                        let componentWeigth = 0;
-                        if (size?.weight) {
-                            componentWeigth = Number(size.weight) * component.qty;
-                        }
-                        return {
-                            ...component,
-                            sizeId,
-                            totalPriceComponent: componentPrice,
-                            totalWeightComponent: componentWeigth,
-                        };
-                    }
-                    return component;
-                }),
-            );
-        },
-        [product],
+    const [selectedQualities, setSelectedQualities] = useState<{ id: number; value: string | number }[]>(
+        productComponent.map((_, index) => ({ id: index, value: 0 })),
     );
-    const calculateTotalPrice = useCallback((): number => {
-        return valueComponent.reduce((total, comp) => total + comp.totalPriceComponent, 0);
-    }, [valueComponent]);
 
-    const calculateTotalWeight = useCallback((): number => {
-        return valueComponent.reduce((total, comp) => total + comp.totalWeightComponent, 0);
-    }, [valueComponent]);
+    const [selectedSize, setSelectedSize] = useState<
+        { component: number | string; qualities: number | string; value: string | number }[]
+    >([]);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        setFileError('');
+    const { getComponentPriceAndCogs } = usePriceCalculator(productComponent, selectedQualities, selectedSize, qty);
 
-        if (file) {
-            // Validasi tipe file
-            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-            if (!validTypes.includes(file.type)) {
-                setFileError('Format file harus PDF, PNG, atau JPG');
-                event.target.value = ''; // Reset input file
-                return;
-            }
+    // Handle quantity increase
+    const handlePlus = (index: number) => {
+        setQty((prevQty) => {
+            const newQty = prevQty.map((item, i) => {
+                if (i === index) {
+                    return { ...item, value: item.value + 1 };
+                }
+                return item;
+            });
+            updateCartQty(newQty, index);
+            return newQty;
+        });
+    };
 
-            // Validasi ukuran file (maksimal 5MB)
-            const maxSize = 5 * 1024 * 1024; // 5MB dalam bytes
-            if (file.size > maxSize) {
-                setFileError('Ukuran file maksimal 5MB');
-                event.target.value = ''; // Reset input file
-                return;
-            }
+    // Handle quantity decrease
+    const handleMinus = (index: number) => {
+        setQty((prevQty) => {
+            const newQty = prevQty.map((item, i) => {
+                if (i === index && item.value > productComponent[index].minQty) {
+                    return { ...item, value: item.value - 1 };
+                }
+                return item;
+            });
+            updateCartQty(newQty, index);
+            return newQty;
+        });
+    };
 
-            setSelectedFile(file);
+    // Handle manual quantity input
+    const handleInputChange = (index: number, value: number) => {
+        if (value < productComponent[index].minQty) {
+            console.log('TIDAK BOLEH');
+        } else {
+            setQty((prevQty) => {
+                const newQty = [...prevQty];
+                newQty[index].value = isNaN(value) ? productComponent[index].minQty : value;
+                updateCartQty(newQty, index);
+                return newQty;
+            });
         }
     };
-    // Handler untuk menghapus file
-    const handleRemoveFile = () => {
-        setSelectedFile(null);
+
+    // Update cart quantity and total price
+    const updateCartQty = (newQty: { id: number; value: number }[], index: number) => {
+        setCart((prevCart) => {
+            const newProductComponent = [...prevCart.productComponent];
+            newProductComponent[index].qty = newQty[index].value;
+            newProductComponent[index].totalPriceComponent = newProductComponent[index].price * newQty[index].value;
+            newProductComponent[index].totalCogsComponent = newProductComponent[index].cogs * newQty[index].value;
+            return { ...prevCart, productComponent: newProductComponent };
+        });
     };
 
-    let cartRef = useRef(cart);
-    cartRef.current = cart;
-    useEffect(() => {
-        setCart({
-            ...cartRef.current,
-            totalPriceComponent: calculateTotalPrice(),
-            totalWeightComponent: calculateTotalWeight() * totalQty,
-            notes: notes,
-            files: selectedFile,
-            productDetail: {
-                barcode: barcode,
-                productComponent: valueComponent,
-            },
-            totalQty: totalQty,
-            subTotal: Number(calculateTotalPrice() * totalQty),
+    // Handle quality selection
+    const handleChangeSelectedQualities = (id: number, value: string | number) => {
+        setSelectedQualities((prev) => {
+            const newSelectedQualities = [...prev];
+            if (newSelectedQualities[id].value === value) return newSelectedQualities;
+
+            newSelectedQualities[id].value = value;
+            resetSelectedSize(id);
+            updateCartQuality(id, value);
+            return newSelectedQualities;
         });
-    }, [barcode, calculateTotalPrice, setCart, valueComponent, notes, selectedFile, calculateTotalWeight, totalQty]);
+    };
+
+    // Reset selected size when quality changes
+    const resetSelectedSize = (id: number) => {
+        setSelectedSize((prev) => prev.filter((item) => item.component !== productComponent[id].component.name));
+    };
+
+    // Update cart with selected quality
+    const updateCartQuality = (id: number, value: string | number) => {
+        setCart((prevCart) => {
+            const newProductComponent = [...prevCart.productComponent];
+            const component = productComponent[id];
+            const quality = component.component.qualities.find((q) => q.name === value);
+            const price = quality ? Number(quality.price) : Number(component.component.price);
+            const cogs = quality ? Number(quality.cogs) : Number(component.component.cogs);
+
+            newProductComponent[id] = {
+                ...newProductComponent[id],
+                qualityId: value,
+                sizeId: null,
+                price: price,
+                cogs: price,
+                weight: 0, // Reset weight saat kualitas diubah
+                totalPriceComponent: price * newProductComponent[id].qty,
+                totalCogsComponent: cogs * newProductComponent[id].qty,
+            };
+            return { ...prevCart, productComponent: newProductComponent };
+        });
+    };
+
+    // Handle size selection
+    const handleChangeSelectedSize = (
+        component: number | string,
+        qualities: number | string,
+        value: number | string,
+        price: number,
+        cogs: number,
+        weight: number, // Tambahkan weight sebagai parameter
+    ) => {
+        setSelectedSize((prev) => {
+            const existingIndex = prev.findIndex(
+                (item) => item.component === component && item.qualities === qualities,
+            );
+            if (existingIndex !== -1) {
+                const newSelectedSize = [...prev];
+                newSelectedSize[existingIndex].value = value;
+                return newSelectedSize;
+            } else {
+                return [...prev, { component, qualities, value }];
+            }
+        });
+        updateCartSize(component, value, price, cogs, weight); // Panggil updateCartSize dengan weight
+    };
+
+    // Update cart with selected size
+    const updateCartSize = (
+        component: number | string,
+        value: number | string,
+        price: number,
+        cogs: number,
+        weight: number,
+    ) => {
+        setCart((prevCart) => {
+            const newProductComponent = [...prevCart.productComponent];
+            const index = newProductComponent.findIndex((item) => item.componentName === component);
+            if (index !== -1) {
+                newProductComponent[index] = {
+                    ...newProductComponent[index],
+                    sizeId: value,
+                    price: price,
+                    cogs: cogs,
+                    weight: weight, // Simpan weight ke productComponent
+                    totalPriceComponent: price * newProductComponent[index].qty,
+                    totalCogsComponent: cogs * newProductComponent[index].qty,
+                };
+            }
+            return { ...prevCart, productComponent: newProductComponent };
+        });
+    };
+
+    // Get default size value for select input
+    const getDefaultSizeValue = (component: number | string, qualities: number | string) => {
+        const selected = selectedSize.find((item) => item.component === component && item.qualities === qualities);
+        return selected ? selected.value : 0;
+    };
+
+    console.log(cart); // Debugging
 
     return (
-        <div className="pt-6">
-            {product?.product_component.map((productComponent, componentIndex) => (
-                <div key={componentIndex} className="p-5 mt-5 border rounded-lg bg-white-primary border-light-gray">
-                    <div className="flex items-center justify-between">
-                        <h3 className="font-medium ">
-                            {productComponent.component.typeComponent}: {productComponent.component.name}
-                        </h3>
-                        {productComponent.component.description && (
-                            <Tooltip
-                                title={productComponent.component.description}
-                                position="bottom"
-                                arrow
-                                className="cursor-pointer"
-                                size="small"
-                            >
-                                <IconHelpCircle stroke={1.7} className="text-blue" />
-                            </Tooltip>
-                        )}
-                    </div>
-                    <div className="flex items-center justify-end mt-3">
-                        <div className="flex flex-col justify-end w-full gap-y-2">
-                            {productComponent.component.price && (
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium">Harga</p>
-                                    <p className="text-sm font-normal">
-                                        {formatCurrency.format(Number(productComponent.component.price))}
-                                    </p>
+        <section className="pt-6">
+            <h3 className="text-xl font-semibold text-dark-primary">Komponen Produk</h3>
+            <div className="flex flex-col my-5 gap-y-5">
+                {productComponent.map((pc, index) => {
+                    const { price, cogs } = getComponentPriceAndCogs(index);
+                    const totalComponentPrice = price + (qty[index] ? qty[index].value : 0);
+
+                    return (
+                        <div key={index}>
+                            <div className="flex items-end justify-between">
+                                <div className="flex items-center justify-start gap-2">
+                                    <h5 className="font-semibold text-dark">{pc.component.name}</h5>
+                                    <Tooltip title={pc.component.typeComponent} size="small" arrow>
+                                        <div className="flex items-center justify-center w-6 h-6 border-2 rounded-full border-light-gray">
+                                            <IconQuestionMark size={16} stroke={3} className="text-gray" />
+                                        </div>
+                                    </Tooltip>
                                 </div>
-                            )}
-                        </div>
-                        {productComponent.component.typeComponent !== 'PROCESSING' && (
-                            <div className="w-full">
-                                <p className="flex items-center justify-end gap-1 text-sm text-danger">
-                                    <span>Jumlah Min. Kuantitas</span>
-                                    <span>{productComponent.minQty}</span>
-                                    <span>
-                                        {productComponent.typePieces ? productComponent.typePieces : 'Komponen'}
-                                    </span>
-                                </p>
-                                <div className="flex items-center w-5/12 overflow-hidden border rounded-md shadow ms-auto border-light-gray">
-                                    <input
-                                        name="minQty"
-                                        type="text"
-                                        className="w-4/12 py-3 text-sm text-center outline-none bg-white-primary"
-                                        autoComplete="off"
-                                        placeholder="0"
-                                        value={valueComponent[componentIndex]?.qty.toString()}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                            handleChangeQty(componentIndex, Number(e.target.value))
-                                        }
-                                    />
-                                    <div className="w-8/12 px-3 py-3 text-sm text-center bg-white outline-none">
-                                        {productComponent.typePieces ? productComponent.typePieces : 'Komponen'}
+                                <div>
+                                    <label className="text-xs font-medium text-gray">Jumlah Kuantitas</label>
+                                    <div className="flex items-center justify-center overflow-hidden border rounded-lg bg-white-primary text-dark border-light-gray">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleMinus(index)}
+                                            className="p-2 transition-all duration-200 ease-in-out hover:bg-danger text-dark hover:text-white"
+                                        >
+                                            <IconMinus size={20} stroke={2} />
+                                        </button>
+                                        <input
+                                            type="text"
+                                            className="px-3 py-2 text-sm font-semibold text-center w-14 bg-white-primary"
+                                            value={qty[index] ? qty[index].value : 0}
+                                            onChange={(e) => handleInputChange(index, parseInt(e.target.value))}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePlus(index)}
+                                            className="p-2 transition-all duration-200 ease-in-out hover:bg-dark-primary text-dark hover:text-white"
+                                        >
+                                            <IconPlus size={20} stroke={2} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                    <div className="mt-3">
-                        {productComponent.component.typeComponent !== 'PROCESSING' && (
-                            <div className="flex items-center justify-between">
-                                <h5 className="w-full text-sm font-medium text-dark-primary">
-                                    Pilih Jenis Kualitas {productComponent.component.typeComponent}
-                                </h5>
+                            <div className="mt-3 text-sm">
+                                <p className="text-gray">
+                                    <span className="font-semibold">Price:</span> {formatCurrency.format(price)}
+                                </p>
+                                <p className="text-gray">
+                                    <span className="font-semibold">Weight:</span>{' '}
+                                    {cart.productComponent[index]?.weight || 0} G
+                                </p>
+                                <p className="text-gray">
+                                    <span className="font-semibold">Weight:</span>{' '}
+                                    {Number(cart.productComponent[index]?.weight) * 0.001 || 0} KG
+                                </p>
                             </div>
-                        )}
+                            {pc.component.qualities.length !== 0 && (
+                                <div className="flex flex-col gap-3 mt-3 text-sm">
+                                    {pc.component.qualities.map((qualities, qualityIdx) => (
+                                        <div className="grid items-start grid-cols-2 gap-5" key={qualityIdx}>
+                                            <button
+                                                type="button"
+                                                className="flex items-center justify-start gap-3 px-3 py-2 border rounded-lg cursor-pointer bg-white-primary border-light-gray"
+                                                onClick={() => handleChangeSelectedQualities(index, qualities.name)}
+                                            >
+                                                {qualities.name === selectedQualities[index]?.value || 0 ? (
+                                                    <IconCircleFilled className="text-blue" stroke={2} size={16} />
+                                                ) : (
+                                                    <IconCircle stroke={2} size={16} />
+                                                )}
+                                                <span>{qualities.name}</span>
+                                            </button>
 
-                        <div className="flex flex-col mt-3 gap-y-2">
-                            {productComponent.component.qualities.map((quality, qualityIndex) => (
-                                <React.Fragment key={qualityIndex}>
-                                    <button
-                                        type="button"
-                                        className={`w-8/12 px-2 py-4 text-sm font-light border rounded-lg ${
-                                            valueComponent[componentIndex]?.qualityId === quality.id
-                                                ? 'bg-blue-50 border-blue-200'
-                                                : 'bg-white border-light-gray'
-                                        }`}
-                                        onClick={() => handleChangeQuality(componentIndex, Number(quality.id))}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-start gap-2">
-                                                <input
-                                                    type="radio"
-                                                    name={`quality-${componentIndex}`}
-                                                    checked={valueComponent[componentIndex]?.qualityId === quality.id}
-                                                    onChange={() => {}}
-                                                />
-                                                <h6>{quality.name}</h6>
-                                            </div>
-                                            {quality.description && (
-                                                <Tooltip
-                                                    title={quality.description}
-                                                    position="bottom"
-                                                    size="small"
-                                                    arrow
-                                                >
-                                                    <IconHelpCircle size={16} stroke={1.5} />
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                    </button>
-
-                                    {valueComponent[componentIndex]?.qualityId === quality.id && (
-                                        <div className="flex flex-col gap-y-2">
-                                            {quality.sizes.map((size, sizeIndex) => (
-                                                <button
-                                                    type="button"
-                                                    className={`w-8/12 p-3 text-xs font-light border rounded-md ${
-                                                        valueComponent[componentIndex]?.sizeId === size.id
-                                                            ? 'bg-blue-50 border-blue-200'
-                                                            : 'bg-white-primary border-light-gray'
-                                                    }`}
-                                                    key={sizeIndex}
-                                                    onClick={() =>
-                                                        handleChangeSize(componentIndex, size.id, size.price)
-                                                    }
-                                                >
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <div className="flex items-center justify-start gap-2">
-                                                            <input
-                                                                type="radio"
-                                                                name={`size-${componentIndex}-${qualityIndex}`}
-                                                                checked={
-                                                                    valueComponent[componentIndex]?.sizeId === size.id
-                                                                }
-                                                                onChange={() => {}}
-                                                            />
-                                                            <p className="font-medium text-dark-primary">
-                                                                {formatCurrency.format(size.price ? size.price : 0)}
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center justify-end gap-3">
-                                                            {size.length ? <p>P {size.length} cm</p> : null}
-                                                            {size.width ? <p>L {size.width} cm</p> : null}
-                                                            {size.height ? <p>T {size.height} cm</p> : null}
-                                                            {size.weight ? <p>Berat {size.weight * 1000} g</p> : null}
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            ))}
-
-                                            <div className="mt-3 font-medium text-dark-primary">
-                                                <div className="flex items-center justify-start gap-2">
-                                                    <b>Total Harga:</b>
-                                                    <span>
-                                                        {formatCurrency.format(
-                                                            valueComponent[componentIndex].totalPriceComponent,
+                                            {selectedQualities[index]?.value !== 0 &&
+                                                selectedQualities[index]?.value === qualities.name && (
+                                                    <div className="grid items-start grid-cols-2 gap-3">
+                                                        {qualities.qualitiesSize.length > 0 && (
+                                                            <div className="flex flex-col gap-3">
+                                                                <div className="relative w-full">
+                                                                    <select
+                                                                        name="sizes"
+                                                                        className="w-full px-3 py-2 pr-10 text-sm border rounded-lg outline-none appearance-none cursor-pointer bg-white-primary border-light-gray"
+                                                                        value={getDefaultSizeValue(
+                                                                            pc.component.name,
+                                                                            qualities.name,
+                                                                        )}
+                                                                        onChange={(e) => {
+                                                                            const selectedSize =
+                                                                                qualities.qualitiesSize.find(
+                                                                                    (size) =>
+                                                                                        size.sizes.name ===
+                                                                                        e.target.value,
+                                                                                );
+                                                                            if (selectedSize) {
+                                                                                handleChangeSelectedSize(
+                                                                                    pc.component.name,
+                                                                                    qualities.name,
+                                                                                    e.target.value,
+                                                                                    Number(selectedSize.price),
+                                                                                    Number(selectedSize.cogs),
+                                                                                    Number(selectedSize.sizes.weight), // Tambahkan weight
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <option value={0} disabled>
+                                                                            Pilih Ukuran
+                                                                        </option>
+                                                                        {qualities.qualitiesSize.map(
+                                                                            (sizes, sizeIndex) => (
+                                                                                <option
+                                                                                    value={sizes.sizes.name}
+                                                                                    key={sizeIndex}
+                                                                                >
+                                                                                    {sizes.sizes.name}
+                                                                                </option>
+                                                                            ),
+                                                                        )}
+                                                                    </select>
+                                                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                                        <IconChevronDown className="w-5 h-5 text-gray-500" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         )}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                        {/* <button
+                                                            type="button"
+                                                            className="w-full px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-dark-primary"
+                                                        >
+                                                            Ukuran Khusus
+                                                        </button> */}
+                                                    </div>
+                                                )}
                                         </div>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            ))}
-
-            <div className="flex items-center justify-between mt-5">
-                <div className="w-full">
-                    <label htmlFor="" className="block mb-2 text-sm font-medium">
-                        File Cetak
-                    </label>
-                    <small className="text-xs font-light text-gray">
-                        File berformat PDF, PNG, JPG dengan resolusi terbaik.{' '}
-                        <Link href={'/'}> Baca Instruksi File</Link>
-                    </small>
-                </div>
-                <div className="relative w-5/12 cursor-pointer">
-                    {selectedFile ? (
-                        <div className="flex items-center justify-between px-3 py-2 text-sm border rounded-md border-light-gray">
-                            <div className="flex items-center gap-2">
-                                <IconCloudUpload size={18} stroke={2} />
-                                <span className="text-sm font-medium truncate max-w-[200px]">{selectedFile.name}</span>
-                            </div>
-                            <button onClick={handleRemoveFile} className="p-1 rounded-full hover:bg-gray-100">
-                                <IconX size={16} />
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="px-3 py-2 text-sm border rounded-md cursor-pointer border-light-gray">
-                                <div className="flex items-center justify-center w-full gap-1">
-                                    <IconCloudUpload size={18} stroke={2} />
-                                    <span className="text-sm font-medium">Upload (PDF, PNG)</span>
+                                    ))}
                                 </div>
-                            </div>
-                            <input
-                                type="file"
-                                accept=".pdf,.png,.jpg,.jpeg"
-                                onChange={handleFileUpload}
-                                className="absolute top-0 right-0 w-full h-full opacity-0 cursor-pointer z-[1]"
-                            />
-                        </>
-                    )}
-                    {/* <div className="px-3 py-2 text-sm border rounded-md border-light-gray">
-                        <div className="flex items-center justify-center w-full gap-1">
-                            <IconCloudUpload size={18} stroke={2} />
-                            <span className="text-sm font-medium">Upload (PDF, PNG)</span>
+                            )}
                         </div>
-                    </div>
-                    <input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
-                        onChange={handleFileUpload}
-                        className="absolute top-0 right-0 w-full h-full opacity-0 cursor-pointer z-[1]"
-                    /> */}
-                </div>
+                    );
+                })}
             </div>
-            {fileError && <p className="mt-1 text-xs text-red-500">{fileError}</p>}
-            <div className="flex items-start justify-between gap-5 mt-5">
-                <div className="w-2/12">
-                    <label htmlFor="noteForm" className="block mb-2 text-sm font-medium">
-                        Jumlah Copy
-                    </label>
-                    <input
-                        type="number"
-                        className="w-full h-full p-5 text-sm border rounded-lg bg-white-primary outline-dark-primary border-light-gray"
-                        value={totalQty}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            setTotalQty(Number(e.target.value));
-                        }}
-                    />
-                </div>
+
+            <div className="flex items-end justify-end w-full gap-5 my-8">
                 <div className="w-full">
-                    <label htmlFor="noteForm" className="block mb-2 text-sm font-medium">
-                        Catatan
-                    </label>
-                    <textarea
-                        rows={3}
-                        placeholder="Tulis Catatan Yang penting untuk Titanium Printing"
-                        className="w-full p-5 text-sm border rounded-lg bg-white-primary outline-dark-primary border-light-gray"
-                        value={notes}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            setNotes(e.target.value);
-                        }}
-                    />
+                    <h5 className="font-semibold text-dark">
+                        Total Harga: {formatCurrency.format(cart.subTotalPrice)}
+                    </h5>
+                    <h5 className="font-semibold text-dark">
+                        Total Berat: {cart.delivery.weight}g [{Number(cart.delivery.weight) / 1000}Kg]
+                    </h5>
                 </div>
             </div>
-
-            <div className="p-6 border rounded-lg border-light-gray bg-gradient-to-r from-white via-[#F4F7FF] to-[#D9DDFF] mt-5">
-                <div className="flex items-center justify-between w-full">
-                    <div>
-                        <h3 className="mb-2 text-lg font-medium">Kebutuhan anda tidak tersedia?</h3>
-                        <p className="text-sm font-light text-gray">Silahkan hubungi kami untuk custom produk</p>
+            <div className="flex flex-col gap-5 my-8">
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray">Jumlah Copies</label>
+                    <div className="flex items-center justify-center overflow-hidden border rounded-lg bg-white-primary text-dark border-light-gray">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (cart.copies > 1) {
+                                    setCart((prevCart) => ({
+                                        ...prevCart,
+                                        copies: prevCart.copies - 1,
+                                    }));
+                                }
+                            }}
+                            className="p-2 transition-all duration-200 ease-in-out hover:bg-danger text-dark hover:text-white"
+                        >
+                            <IconMinus size={20} stroke={2} />
+                        </button>
+                        <input
+                            type="text"
+                            className="px-3 py-2 text-sm font-semibold text-center w-14 bg-white-primary"
+                            value={cart.copies}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (!isNaN(value) && value >= 1) {
+                                    setCart((prevCart) => ({
+                                        ...prevCart,
+                                        copies: value,
+                                    }));
+                                }
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setCart((prevCart) => ({
+                                    ...prevCart,
+                                    copies: prevCart.copies + 1,
+                                }));
+                            }}
+                            className="p-2 transition-all duration-200 ease-in-out hover:bg-dark-primary text-dark hover:text-white"
+                        >
+                            <IconPlus size={20} stroke={2} />
+                        </button>
                     </div>
-
-                    <Link
-                        href={'/'}
-                        className="px-5 py-3 text-base font-medium bg-white border rounded-lg border-light-gray"
-                    >
-                        Hubungi Kami
-                    </Link>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };

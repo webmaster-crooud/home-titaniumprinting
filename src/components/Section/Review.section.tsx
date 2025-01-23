@@ -2,16 +2,29 @@ import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 import { ReviewCard } from '../Card/Review.card';
 import Autoplay from 'embla-carousel-autoplay';
+import { useEffect, useState } from 'react';
+import { testimoni } from '@/data/testimoni';
+
+interface Testimoni {
+    id: string | number;
+    name: string;
+    value: string;
+}
 
 export const ReviewSection = () => {
+    const [data, setData] = useState<Testimoni[]>([]);
+    useEffect(() => {
+        setData(testimoni);
+    }, []);
+
     return (
-        <div className="relative py-16 bg-white flex items-center justify-center">
-            <div className="h-[498px] w-10/12 mx-auto bg-white-primary rounded-md">
+        <div className="relative flex items-center justify-center py-16 bg-white">
+            <div className="h-[600px] w-10/12 mx-auto bg-white-primary rounded-md">
                 <div className="flex justify-center w-full h-full">
                     <div>
                         <div className="relative top-14">
-                            <h3 className="text-center text-lg text-gray">Trusted by 4000+ Companies</h3>
-                            <div className="flex items-center justify-between mt-8 mb-12 gap-8">
+                            <h3 className="text-lg text-center text-gray">Trusted by 4000+ Companies</h3>
+                            <div className="flex items-center justify-between gap-8 mt-8 mb-12">
                                 <Image
                                     src={'/assets/customers/cust.svg'}
                                     alt="customers"
@@ -55,7 +68,7 @@ export const ReviewSection = () => {
                             </div>
                         </div>
 
-                        <div className="absolute right-0 left-0 bottom-24">
+                        <div className="absolute bottom-0 left-0 right-0">
                             <Carousel
                                 plugins={[
                                     Autoplay({
@@ -64,30 +77,11 @@ export const ReviewSection = () => {
                                 ]}
                             >
                                 <CarouselContent className="pb-5">
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
-                                    <CarouselItem className="basis-4/12">
-                                        <ReviewCard />
-                                    </CarouselItem>
+                                    {data.map((data) => (
+                                        <CarouselItem className="basis-4/12" key={data.id}>
+                                            <ReviewCard name={data.name} value={data.value} />
+                                        </CarouselItem>
+                                    ))}
                                 </CarouselContent>
                                 {/* <CarouselPrevious className="text-dark border-dark" />
                                 <CarouselNext className="text-dark border-dark" /> */}

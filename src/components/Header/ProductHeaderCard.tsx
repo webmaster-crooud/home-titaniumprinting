@@ -11,7 +11,7 @@ export const ProductHeaderCard: React.FC<propsProductHeaderCard> = ({ product })
     return (
         <div className="grid grid-cols-3 gap-6 pb-12 border-b border-light-gray">
             <Image
-                src={`${PUBLIC}/cover/${product?.cover}`}
+                src={product?.cover ? `${PUBLIC}/cover/${product?.cover}` : '/assets/products/404.png'}
                 alt={`${product?.name} Cover By Titanium Printing`}
                 width={300}
                 height={300}

@@ -1,21 +1,32 @@
 import Image from 'next/image';
 import { IconStarFilled } from '@tabler/icons-react';
+import React from 'react';
 
-export const ReviewCard = () => {
+type propsReviewCard = {
+    name: string;
+    value: string;
+};
+export const ReviewCard: React.FC<propsReviewCard> = ({ name, value }) => {
     return (
         <div className={`relative overflow-hidden bg-white rounded-[16px] shadow p-4`}>
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 justify-start">
+                <div className="flex items-center justify-start gap-3">
                     <Image
                         src={'/assets/users/users.jpeg'}
                         alt="images users Titanium Printing"
                         width={300}
                         height={300}
                         priority
-                        style={{ width: '40px', height: '40px', objectFit: 'cover', objectPosition: 'center', borderRadius: '30rem' }}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            borderRadius: '30rem',
+                        }}
                     />
 
-                    <h4 className="font-medium text-base">“The best time manager app”</h4>
+                    <h4 className="text-base font-medium">“The best time manager app”</h4>
                 </div>
 
                 <div className="flex items-center justify-end gap-1">
@@ -27,13 +38,10 @@ export const ReviewCard = () => {
                 </div>
             </div>
             {/* Body Card */}
-            <p className="text-base font-light text-gray my-8">
-                I love how user-friendly this app is! It&lsquo;s so easy to add events and set reminders, and it&lsquo;s made my life so much more
-                organized.
-            </p>
+            <p className="my-8 text-base font-light text-gray">{value}</p>
             <div className="flex items-center justify-between">
-                <h4 className="font-medium text-base">Adam Gwadyr</h4>
-                <h5 className="font-light text-sm text-gray">Entrepreneur</h5>
+                <h4 className="text-base font-medium">{name}</h4>
+                <h5 className="text-sm font-light text-gray">Entrepreneur</h5>
             </div>
         </div>
     );
