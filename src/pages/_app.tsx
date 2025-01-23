@@ -1,4 +1,4 @@
-import { LayoutApp } from '@/components/Layouts/App';
+import { LayoutApp } from '@/layouts/App';
 import '@/styles/globals.css';
 import 'react-tippy/dist/tippy.css';
 import type { AppProps } from 'next/app';

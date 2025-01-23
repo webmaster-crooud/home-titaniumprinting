@@ -22,7 +22,7 @@ import { DefaultPagination } from '@/components/Pagination';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-import { UserLayouts } from '@/components/Layouts/User';
+import { UserLayouts } from '@/layouts/User';
 
 export default function CartPage() {
     const { getValidToken } = useAuthToken();

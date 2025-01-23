@@ -1,14 +1,14 @@
 import React from 'react';
-import { NavBreadcrumb } from '../NavBreadcrumb';
+import { NavBreadcrumb } from '../components/NavBreadcrumb';
 
 import { IconPower, IconShoppingBagCheck, IconUserFilled } from '@tabler/icons-react';
 import { useRouter } from 'next/router';
-import { useAuthToken } from '../../../hooks/useAuthToken';
-import { AUTH } from '../../../libs/utils';
+import { useAuthToken } from '../../hooks/useAuthToken';
+import { AUTH } from '../../libs/utils';
 import { useAtomValue } from 'jotai';
-import { authAccount } from '../../../store/Atom';
+import { authAccount } from '../../store/Atom';
 import Link from 'next/link';
-import { NavBreadcrumbData } from '../../../libs/type';
+import { NavBreadcrumbData } from '../../libs/type';
 
 type propsUserLayouts = {
     children: React.ReactNode;
