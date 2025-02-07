@@ -1,4 +1,4 @@
-import { IconHelpCircle, IconShoppingBag, IconUser, IconUserCheck } from '@tabler/icons-react';
+import { IconHelpCircle, IconShoppingBag, IconUserCheck } from '@tabler/icons-react';
 import { DefaultButton } from '../Button';
 import { useAtomValue } from 'jotai';
 import { authAccount } from '../../../store/Atom';

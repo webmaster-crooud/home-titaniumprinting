@@ -8,7 +8,13 @@ export interface Account {
     role: string;
 }
 export const alertShow = atom<{ type: string; message: string } | undefined>(undefined);
-export const authAccount = atom<Account | undefined>(undefined);
+export const authAccount = atom<Account>({
+    email: '',
+    username: '',
+    firstName: '',
+    lastName: '',
+    role: '',
+});
 export const cartAtom = atom<Cart>({
     product: {
         name: '',

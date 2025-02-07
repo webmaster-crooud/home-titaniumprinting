@@ -24,6 +24,7 @@ export const useAuthToken = () => {
     const decodeAndSetAccount = useCallback(
         (jwt: string) => {
             try {
+                console.log(jwt);
                 const decoded: Decoded = jwtDecode(jwt);
                 setAccount({
                     email: decoded.email,
@@ -73,28 +74,28 @@ export const useAuthToken = () => {
         }
 
         const newToken = await refreshToken();
-        // if (!newToken) {
-        //     // Redirect ke halaman login jika tidak ada token yang valid
-        //     router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
-        //     return null;
-        // }
+        if (!newToken) {
+            // Redirect ke halaman login jika tidak ada token yang valid
+            router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
+            return null;
+        }
         return newToken;
-    }, [token, expired, refreshToken]);
+    }, [token, expired, refreshToken, router]);
 
     useEffect(() => {
-        if (isTokenChecked) return; // Hentikan jika pengecekan sudah dilakukan
-
+        if (isTokenChecked) return;
         const initToken = async () => {
             const refreshedToken = await refreshToken();
-            // if (!refreshedToken && router.pathname !== '/login') {
-            //     router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
-            //     return;
-            // }
-            decodeAndSetAccount(refreshedToken);
-            setIsTokenChecked(true); // Tandai bahwa pengecekan sudah dilakukan
+            if (refreshedToken) {
+                decodeAndSetAccount(refreshedToken);
+            } else {
+                // Redirect ke halaman login jika token tidak dapat diperbarui
+                router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
+            }
+            setIsTokenChecked(true);
         };
         initToken();
-    }, [isTokenChecked, router.pathname, refreshToken, decodeAndSetAccount]);
+    }, [isTokenChecked, refreshToken, decodeAndSetAccount, router]);
 
     return { token, refreshToken, expired, getValidToken };
 };
