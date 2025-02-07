@@ -3,6 +3,8 @@ import { SearchNavbar } from './Search.navbar';
 import { MenuNavbar } from './Menu.navbar';
 import { inter } from '../../../libs/utils';
 import Link from 'next/link';
+import { IconMenu2 } from '@tabler/icons-react';
+import MobileMenu from './Mobile.menu';
 
 export const Navbar = () => {
     return (
@@ -25,6 +27,9 @@ export const Navbar = () => {
                     </div>
 
                     <MenuNavbar />
+
+                    {/* Humberger */}
+                    <MobileMenu />
                 </div>
             </nav>
         </>

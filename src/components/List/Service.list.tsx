@@ -40,8 +40,6 @@ export const ServiceList: React.FC<propsServiceList> = ({ serviceListData, servi
 };
 
 export const ContentServiceList: React.FC<propsServiceList> = ({ serviceListData, serviceListShow }) => {
-    console.log(serviceListData);
-    console.log(serviceListShow);
     return (
         serviceListData &&
         serviceListData.map(
@@ -55,7 +53,7 @@ export const ContentServiceList: React.FC<propsServiceList> = ({ serviceListData
                                 : service.products && service.products[0].description}
                         </p>
 
-                        <div className="grid grid-cols-4 gap-6 my-8">
+                        <div className="grid grid-cols-1 gap-6 my-8 xl:grid-cols-4">
                             {service.products &&
                                 (service.products.length > 0 ? (
                                     service.products.map((product, index) => (
@@ -82,7 +80,7 @@ export const ContentServiceList: React.FC<propsServiceList> = ({ serviceListData
                         </div>
 
                         <div className="p-6 bg-gradient-to-r from-white via-[#F4F7FF] to-[#D9DDFF] rounded-md shadow-md border border-light-gray">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col items-center justify-between gap-3 xl:flex-row">
                                 <div>
                                     <h3 className="text-lg font-medium">Kebutuhan anda tidak tersedia?</h3>
                                     <p className="text-sm font-light text-gray">

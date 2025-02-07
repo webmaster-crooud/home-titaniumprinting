@@ -56,11 +56,11 @@ export const SubMenuNavbar = () => {
 
     return (
         <nav className={`py-5 bg-white border-b border-light-gray ${inter.className}`}>
-            <div className="relative w-10/12 mx-auto">
+            <div className="relative w-8/12 mx-auto xl:w-10/12">
                 <Carousel>
                     <CarouselContent>
                         {categories?.map((category, index) => (
-                            <CarouselItem className="basis-[14%]" key={category.slug}>
+                            <CarouselItem className="basis-1/2 xl:basis-[14%]" key={category.slug}>
                                 <DefaultButton
                                     title={`${category.name}`}
                                     className="w-full text-sm text-nowrap"
@@ -87,7 +87,7 @@ export const SubMenuNavbar = () => {
                                 onMouseLeave={handlePopUpMouseLeave}
                             >
                                 <DefaultCard padding border>
-                                    <div className="grid grid-cols-5 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
                                         <div>
                                             <Image
                                                 src={'/assets/banner/subMenu.svg'}
@@ -103,7 +103,7 @@ export const SubMenuNavbar = () => {
                                             />
                                         </div>
 
-                                        <div className="grid w-full grid-cols-4 col-span-4 gap-6">
+                                        <div className="grid w-full grid-cols-1 col-span-4 gap-6 xl:grid-cols-4">
                                             {category.products?.map((product, index) => (
                                                 <Link href={`/produk/${product.slug}`} key={index}>
                                                     <h4 className="text-base font-medium">{product.name}</h4>

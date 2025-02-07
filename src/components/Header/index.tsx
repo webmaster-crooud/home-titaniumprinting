@@ -4,7 +4,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 export const Header = () => {
     return (
         <header className="w-full py-8 bg-white">
-            <div className="w-10/12 mx-auto">
+            <div className="w-9/12 px-1 mx-auto xl:px-0 xl:w-10/12">
                 <Carousel>
                     <CarouselContent>
                         <CarouselItem>

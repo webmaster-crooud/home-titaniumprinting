@@ -19,12 +19,12 @@ export const ReviewSection = () => {
 
     return (
         <div className="relative flex items-center justify-center py-16 bg-white">
-            <div className="h-[600px] w-10/12 mx-auto bg-white-primary rounded-md">
-                <div className="flex justify-center w-full h-full">
+            <div className="min-h-[800px] xl:min-h-[600px] w-11/12 xl:w-10/12 mx-auto bg-white-primary rounded-md">
+                <div className="flex flex-col flex-wrap justify-center w-full h-full xl:flex-row">
                     <div>
                         <div className="relative top-14">
                             <h3 className="text-lg text-center text-gray">Trusted by 4000+ Companies</h3>
-                            <div className="flex items-center justify-between gap-8 mt-8 mb-12">
+                            <div className="grid items-center justify-between grid-cols-2 gap-8 mt-8 mb-12 xl:grid-cols-5">
                                 <Image
                                     src={'/assets/customers/cust.svg'}
                                     alt="customers"
@@ -67,7 +67,6 @@ export const ReviewSection = () => {
                                 />
                             </div>
                         </div>
-
                         <div className="absolute bottom-0 left-0 right-0">
                             <Carousel
                                 plugins={[
@@ -78,7 +77,7 @@ export const ReviewSection = () => {
                             >
                                 <CarouselContent className="pb-5">
                                     {data.map((data) => (
-                                        <CarouselItem className="basis-4/12" key={data.id}>
+                                        <CarouselItem className="basis-full xl:basis-4/12" key={data.id}>
                                             <ReviewCard name={data.name} value={data.value} />
                                         </CarouselItem>
                                     ))}

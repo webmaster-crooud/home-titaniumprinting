@@ -32,24 +32,36 @@ export const FAQSection = () => {
     const [openCard, setOpenCard] = useState<Faq>(faqData[0]);
 
     return (
-        <section className="bg-white py-16">
+        <section className="py-16 bg-white">
             <div className="w-10/12 mx-auto">
-                <h2 className="font-medium text-[28px] text-center leading-[0.5%] mb-12">Pertanyaan Seputar Titanium Printing</h2>
+                <h2 className="font-medium text-[28px] text-center  text-wrap leading-normal  xl:leading-[0.5%] mb-12">
+                    Pertanyaan Seputar Titanium Printing
+                </h2>
                 {/* Card */}
 
-                <div className="flex items-center justify-center flex-col gap-y-4">
+                <div className="flex flex-col items-center justify-center gap-y-4">
                     {faqData &&
                         faqData.map((data) => (
-                            <div key={data.id} className="bg-white border border-light-gray rounded w-full">
-                                <button type="button" className="w-full h-auto p-6" onClick={() => setOpenCard({ id: data.id })}>
+                            <div key={data.id} className="w-full bg-white border rounded border-light-gray">
+                                <button
+                                    type="button"
+                                    className="w-full h-auto p-6"
+                                    onClick={() => setOpenCard({ id: data.id })}
+                                >
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-base text-lg">{data.title}</h3>
-                                        {openCard?.id === data.id ? <IconMinus size={25} stroke={1.5} /> : <IconPlus size={25} stroke={1.5} />}
+                                        <h3 className="text-lg text-start font-base">{data.title}</h3>
+                                        {openCard?.id === data.id ? (
+                                            <IconMinus size={25} stroke={1.5} />
+                                        ) : (
+                                            <IconPlus size={25} stroke={1.5} />
+                                        )}
                                     </div>
                                 </button>
                                 <div className={`${openCard?.id === data.id ? 'block' : 'hidden'} p-6 pt-0`}>
-                                    <hr className="border border-light-gray w-full mb-6" />
-                                    <p className="text-base font-light text-gray text-start leading-7">{data.description}</p>
+                                    <hr className="w-full mb-6 border border-light-gray" />
+                                    <p className="text-base font-light leading-7 text-gray text-start">
+                                        {data.description}
+                                    </p>
                                 </div>
                             </div>
                         ))}

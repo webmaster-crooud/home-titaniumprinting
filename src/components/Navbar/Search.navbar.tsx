@@ -2,13 +2,13 @@ import { IconSearch } from '@tabler/icons-react';
 
 export const SearchNavbar = () => {
     return (
-        <form className="flex items-center justify-center">
+        <form className="items-center justify-center hidden md:flex">
             <input
                 type="text"
-                className="px-3 py-3 border border-light-gray outline-none w-full rounded-md border-r-0 rounded-r-none"
+                className="w-full px-3 py-3 border border-r-0 rounded-md rounded-r-none outline-none border-light-gray"
                 placeholder="Cari Produk"
             />
-            <button className="px-3 py-3 border border-light-gray rounded-md border-l-0 rounded-l-none">
+            <button className="px-3 py-3 border border-l-0 rounded-md rounded-l-none border-light-gray">
                 <IconSearch size={24} stroke={2} />
             </button>
         </form>

@@ -7,10 +7,13 @@ import { inter } from '../../libs/utils';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { useAuthToken } from '../../hooks/useAuthToken';
+import { useRouter } from 'next/router';
 
 export const LayoutApp = ({ children }: { children: React.ReactNode }) => {
     const [alert] = useAtom(alertShow);
-    useAuthToken();
+    const router = useRouter();
+    const isPrivatePage = ['/member'].includes(router.pathname); // Tentukan halaman publik
+    useAuthToken(isPrivatePage);
     return (
         <>
             <Head>

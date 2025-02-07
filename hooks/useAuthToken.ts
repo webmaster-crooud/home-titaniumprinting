@@ -14,10 +14,10 @@ interface Decoded {
     exp: number;
 }
 
-export const useAuthToken = () => {
+export const useAuthToken = (isPrivatePage: boolean = false) => {
     const [token, setToken] = useState<string | null>(null);
     const [expired, setExpired] = useState<number | null>(null);
-    const [isTokenChecked, setIsTokenChecked] = useState(false); // State untuk menandai pengecekan token
+    const [isTokenChecked, setIsTokenChecked] = useState(false);
     const setAccount = useSetAtom(authAccount);
     const router = useRouter();
 
@@ -50,17 +50,14 @@ export const useAuthToken = () => {
                 method: 'GET',
                 credentials: 'include',
             });
-
             if (!response.ok) {
                 return null;
             }
-
             const result = await response.json();
             if (result.token) {
                 decodeAndSetAccount(result.token);
                 return result.token;
             }
-
             return null;
         } catch (error) {
             console.error('Token refresh error:', error);
@@ -72,15 +69,14 @@ export const useAuthToken = () => {
         if (token && expired && expired * 1000 > Date.now()) {
             return token;
         }
-
         const newToken = await refreshToken();
-        if (!newToken) {
-            // Redirect ke halaman login jika tidak ada token yang valid
+        if (!newToken && isPrivatePage) {
+            // Redirect hanya jika bukan halaman publik
             router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
             return null;
         }
         return newToken;
-    }, [token, expired, refreshToken, router]);
+    }, [token, expired, refreshToken, router, isPrivatePage]);
 
     useEffect(() => {
         if (isTokenChecked) return;
@@ -88,14 +84,14 @@ export const useAuthToken = () => {
             const refreshedToken = await refreshToken();
             if (refreshedToken) {
                 decodeAndSetAccount(refreshedToken);
-            } else {
-                // Redirect ke halaman login jika token tidak dapat diperbarui
+            } else if (isPrivatePage) {
+                // Redirect hanya jika bukan halaman publik
                 router.push(`${process.env.NEXT_PUBLIC_HOME}/login`);
             }
             setIsTokenChecked(true);
         };
         initToken();
-    }, [isTokenChecked, refreshToken, decodeAndSetAccount, router]);
+    }, [isTokenChecked, refreshToken, decodeAndSetAccount, router, isPrivatePage]);
 
     return { token, refreshToken, expired, getValidToken };
 };

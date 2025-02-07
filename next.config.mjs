@@ -40,6 +40,10 @@ const nextConfig = {
                 source: '/produk/:slug',
                 destination: '/products/:slug',
             },
+            {
+                source: '/tentang-kami',
+                destination: '/about-us',
+            },
         ];
     },
 };

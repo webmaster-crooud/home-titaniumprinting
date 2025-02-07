@@ -2,7 +2,13 @@ import Link from 'next/link';
 import { FAQSection } from '../Section/FAQ.section';
 import { CTASection } from '../Section/CTA.section';
 import Image from 'next/image';
-import { IconBrandFacebookFilled, IconBrandLinkedin, IconBrandLinkedinFilled, IconBrandMeta, IconBrandX } from '@tabler/icons-react';
+import {
+    IconBrandFacebookFilled,
+    IconBrandLinkedin,
+    IconBrandLinkedinFilled,
+    IconBrandMeta,
+    IconBrandX,
+} from '@tabler/icons-react';
 
 export const Footer = () => {
     return (
@@ -13,12 +19,12 @@ export const Footer = () => {
             {/* CTA */}
             <CTASection />
 
-            <footer className="bg-dark text-white w-full py-16">
+            <footer className="w-full py-16 text-white bg-dark">
                 <div className="w-10/12 mx-auto mb-16">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col items-start justify-between xl:flex-row">
                         <div>
-                            <h4 className="font-medium text-base">Navigation</h4>
-                            <ul className="opacity-80 mt-4">
+                            <h4 className="text-base font-medium">Navigation</h4>
+                            <ul className="mt-4 opacity-80">
                                 <li>
                                     <Link href={'/'} className="text-sm">
                                         Home
@@ -48,8 +54,8 @@ export const Footer = () => {
                         </div>
 
                         <div>
-                            <h4 className="font-medium text-base">What We Do</h4>
-                            <ul className="opacity-80 mt-4">
+                            <h4 className="text-base font-medium">What We Do</h4>
+                            <ul className="mt-4 opacity-80">
                                 <li>
                                     <Link href={'/'} className="text-sm">
                                         Encouraging Testing
@@ -84,8 +90,8 @@ export const Footer = () => {
                         </div>
 
                         <div>
-                            <h4 className="font-medium text-base uppercase">Legal</h4>
-                            <ul className="opacity-80 mt-4">
+                            <h4 className="text-base font-medium uppercase">Legal</h4>
+                            <ul className="mt-4 opacity-80">
                                 <li>
                                     <Link href={'/'} className="text-sm">
                                         General Info
@@ -105,8 +111,8 @@ export const Footer = () => {
                         </div>
 
                         <div>
-                            <h4 className="font-medium text-base uppercase">TALK TO US</h4>
-                            <ul className="opacity-80 mt-4">
+                            <h4 className="text-base font-medium uppercase">TALK TO US</h4>
+                            <ul className="mt-4 opacity-80">
                                 <li>
                                     <Link href={'/'} className="text-sm">
                                         support@ercom.com
@@ -118,7 +124,9 @@ export const Footer = () => {
                                     </Link>
                                 </li>
                                 <li className="mt-3">
-                                    <p className="text-sm underline decoration-wavy decoration-blue select-none text-white">Contact Us</p>
+                                    <p className="text-sm text-white underline select-none decoration-wavy decoration-blue">
+                                        Contact Us
+                                    </p>
                                     <ul className="mt-1">
                                         <li>
                                             <Link href={''}>Facebook</Link>
@@ -135,8 +143,8 @@ export const Footer = () => {
                         </div>
                     </div>
                 </div>
-                <div className="w-10/12 mx-auto pt-10 border-t border-white/10">
-                    <div className="flex items-center justify-between">
+                <div className="w-10/12 pt-10 mx-auto border-t border-white/10">
+                    <div className="flex flex-col items-center justify-between gap-y-4 xl:flex-row">
                         <Link href="/">
                             <Image
                                 alt="Titanium Printing logo"
@@ -149,21 +157,32 @@ export const Footer = () => {
                             <h1 className="sr-only">Titanium Printing</h1>
                         </Link>
 
-                        <p className="text-sm text-gray font-normal text-center">&copy; 2024 Titanium Print. All Rights Reserved. </p>
+                        <p className="text-sm font-normal text-center text-gray">
+                            &copy; 2024 Titanium Print. All Rights Reserved.{' '}
+                        </p>
 
                         <div className="flex items-center justify-end gap-3">
-                            <Link href={''} className="hover:rotate-[360deg] transition-transform ease-out duration-300">
-                                <div className="flex items-center justify-center w-10 h-10 border-2 border-white/25 rounded-full">
+                            <Link
+                                href={''}
+                                className="hover:rotate-[360deg] transition-transform ease-out duration-300"
+                            >
+                                <div className="flex items-center justify-center w-10 h-10 border-2 rounded-full border-white/25">
                                     <IconBrandMeta size={18} />
                                 </div>
                             </Link>
-                            <Link href={''} className="hover:rotate-[360deg] transition-transform ease-out duration-300">
-                                <div className="flex items-center justify-center w-10 h-10 border-2 border-white/25 rounded-full">
+                            <Link
+                                href={''}
+                                className="hover:rotate-[360deg] transition-transform ease-out duration-300"
+                            >
+                                <div className="flex items-center justify-center w-10 h-10 border-2 rounded-full border-white/25">
                                     <IconBrandLinkedin size={18} />
                                 </div>
                             </Link>
-                            <Link href={''} className="hover:rotate-[360deg] transition-transform ease-out duration-300">
-                                <div className="flex items-center justify-center w-10 h-10 border-2 border-white/25 rounded-full">
+                            <Link
+                                href={''}
+                                className="hover:rotate-[360deg] transition-transform ease-out duration-300"
+                            >
+                                <div className="flex items-center justify-center w-10 h-10 border-2 rounded-full border-white/25">
                                     <IconBrandX size={18} />
                                 </div>
                             </Link>

@@ -7,7 +7,7 @@ import Link from 'next/link';
 export const MenuNavbar = () => {
     const auth = useAtomValue(authAccount);
     return (
-        <div className="flex items-center justify-end gap-5">
+        <div className="items-center justify-end hidden gap-5 md:flex">
             <div className="flex items-center gap-1 px-5 border-r jusitify-center border-light-gray">
                 <DefaultButton link="/" title="Cara Kerja" icon={<IconHelpCircle size={28} stroke={1.6} />} />
                 <Link
@@ -18,7 +18,7 @@ export const MenuNavbar = () => {
                     <span>Keranjang</span>
                 </Link>
             </div>
-            {auth ? (
+            {auth.email ? (
                 <DefaultButton
                     link={`/member/${auth.email}`}
                     title={
