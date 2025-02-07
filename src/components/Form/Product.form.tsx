@@ -12,8 +12,9 @@ import { Tooltip } from 'react-tippy';
 import 'react-tippy/dist/tippy.css';
 import { useAtom } from 'jotai';
 import { formatCurrency } from '../../../libs/utils';
-import { usePriceCalculator } from '../../../hooks/usePriceCalculator';
+
 import { cartAtom } from '../../../store/Atom';
+import { usePriceCalculator } from '../../../hooks/usePriceCalculator';
 
 type PropsProductForm = {
     productComponent: Product['product_component'];
