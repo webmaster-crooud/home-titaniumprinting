@@ -21,7 +21,7 @@ export const TransactionForm = () => {
     const [cart, setCart] = useAtom(cartAtom);
     const [isCustomer, setIsCustomer] = useState<boolean>(false);
     const [cities, setCities] = useState<rajaOngkirDataCity[]>([]);
-    const [loading, setLoading] = useState<{ field: string } | undefined>(undefined);
+    // const [loading, setLoading] = useState<{ field: string } | undefined>(undefined);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;

@@ -12,7 +12,7 @@ import { Tooltip } from 'react-tippy';
 import 'react-tippy/dist/tippy.css';
 import { useAtom } from 'jotai';
 import { formatCurrency } from '../../../libs/utils';
-import { usePriceCalculator } from './PriceCalculator';
+import { usePriceCalculator } from '../../../hooks/usePriceCalculator';
 import { cartAtom } from '../../../store/Atom';
 
 type PropsProductForm = {
@@ -21,8 +21,6 @@ type PropsProductForm = {
 
 export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) => {
     const [cart, setCart] = useAtom(cartAtom);
-    console.log(cart); // Debugging
-
     const [qty, setQty] = useState(
         productComponent.map((pc, index) => ({
             id: index,
@@ -39,7 +37,8 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
         { component: number | string; qualities: number | string; value: string | number }[]
     >([]);
 
-    const { getComponentPriceAndCogs } = usePriceCalculator(productComponent, selectedQualities, selectedSize, qty);
+    // const { getComponentPriceAndCogs } = usePriceCalculator(productComponent, selectedQualities, selectedSize, qty);
+    const { getComponentPriceAndCogs } = usePriceCalculator(productComponent, selectedQualities, selectedSize);
 
     // Handle quantity increase
     const handlePlus = (index: number) => {
@@ -50,12 +49,13 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
                 }
                 return item;
             });
-            updateCartQty(newQty, index);
+            const newQtyValue = newQty[index].value;
+            const { price, cogs } = getComponentPriceAndCogs(index, newQtyValue);
+            updateCartQty(newQty, index, price, cogs);
             return newQty;
         });
     };
 
-    // Handle quantity decrease
     const handleMinus = (index: number) => {
         setQty((prevQty) => {
             const newQty = prevQty.map((item, i) => {
@@ -64,12 +64,13 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
                 }
                 return item;
             });
-            updateCartQty(newQty, index);
+            const newQtyValue = newQty[index].value;
+            const { price, cogs } = getComponentPriceAndCogs(index, newQtyValue);
+            updateCartQty(newQty, index, price, cogs);
             return newQty;
         });
     };
 
-    // Handle manual quantity input
     const handleInputChange = (index: number, value: number) => {
         if (value < productComponent[index].minQty) {
             console.log('TIDAK BOLEH');
@@ -77,19 +78,24 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
             setQty((prevQty) => {
                 const newQty = [...prevQty];
                 newQty[index].value = isNaN(value) ? productComponent[index].minQty : value;
-                updateCartQty(newQty, index);
+                const { price, cogs } = getComponentPriceAndCogs(index, newQty[index].value);
+                updateCartQty(newQty, index, price, cogs);
                 return newQty;
             });
         }
     };
 
-    // Update cart quantity and total price
-    const updateCartQty = (newQty: { id: number; value: number }[], index: number) => {
+    const updateCartQty = (newQty: { id: number; value: number }[], index: number, price: number, cogs: number) => {
         setCart((prevCart) => {
             const newProductComponent = [...prevCart.productComponent];
-            newProductComponent[index].qty = newQty[index].value;
-            newProductComponent[index].totalPriceComponent = newProductComponent[index].price * newQty[index].value;
-            newProductComponent[index].totalCogsComponent = newProductComponent[index].cogs * newQty[index].value;
+            newProductComponent[index] = {
+                ...newProductComponent[index],
+                qty: newQty[index].value,
+                price: price,
+                cogs: cogs,
+                totalPriceComponent: price * newQty[index].value,
+                totalCogsComponent: cogs * newQty[index].value,
+            };
             return { ...prevCart, productComponent: newProductComponent };
         });
     };
@@ -191,14 +197,12 @@ export const ProductForm: React.FC<PropsProductForm> = ({ productComponent }) =>
         return selected ? selected.value : 0;
     };
 
-    console.log(cart); // Debugging
-
     return (
         <section className="pt-6">
             <h3 className="text-xl font-semibold text-dark-primary">Komponen Produk</h3>
             <div className="flex flex-col my-5 gap-y-5">
                 {productComponent.map((pc, index) => {
-                    const { price, cogs } = getComponentPriceAndCogs(index);
+                    const { price, cogs } = getComponentPriceAndCogs(index, qty[index].value);
                     const totalComponentPrice = price + (qty[index] ? qty[index].value : 0);
 
                     return (

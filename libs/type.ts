@@ -58,15 +58,18 @@ export interface Product {
             price?: string | number;
             cogs?: string | number;
             typeComponent: string;
+            progressivePricing: ProgressivePricing[];
             qualities: {
                 name: string;
                 id: number | string;
                 price?: number;
                 cogs?: string | number;
+                progressivePricing: ProgressivePricing[];
                 qualitiesSize: {
                     sizeId: number;
                     price: string | number;
                     cogs?: string | number;
+                    progressivePricing: ProgressivePricing[];
                     sizes: {
                         id: number;
                         cogs: number;
@@ -160,6 +163,15 @@ export interface Cart {
     }[];
     user: User;
     customer: Customer;
+}
+
+export interface ProgressivePricing {
+    entityId: number;
+    entityType: 'component' | 'quality' | 'qualitySize';
+    id: number;
+    maxQty: number;
+    minQty: number;
+    price: number | string;
 }
 
 export interface ValueComponent {

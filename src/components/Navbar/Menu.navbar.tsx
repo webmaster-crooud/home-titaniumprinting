@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 export const MenuNavbar = () => {
     const auth = useAtomValue(authAccount);
-    console.log(auth);
     return (
         <div className="flex items-center justify-end gap-5">
             <div className="flex items-center gap-1 px-5 border-r jusitify-center border-light-gray">

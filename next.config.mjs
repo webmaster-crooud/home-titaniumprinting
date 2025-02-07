@@ -9,9 +9,8 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'http', // atau 'https' sesuai protokol backend Anda
-                hostname: 'localhost',
-                port: '3001',
+                protocol: 'https', // atau 'https' sesuai protokol backend Anda
+                hostname: 'api.titaniumprint.id',
                 pathname: '/public/**', // Path yang diizinkan
             },
             {

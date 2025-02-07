@@ -30,31 +30,32 @@ export default function LoginPage() {
         }
         if (!password && !confirmPassword) {
             setError('Password tidak boleh kosong!');
-        }
-        setLoading(true);
-        try {
-            const response = await fetch(`${AUTH}/register`, {
-                method: 'post',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email,
-                    firstName,
-                    lastName,
-                    password,
-                }),
-            });
+        } else {
+            setLoading(true);
+            try {
+                const response = await fetch(`${AUTH}/register`, {
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        firstName,
+                        lastName,
+                        password,
+                    }),
+                });
 
-            const result = await response.json();
-            if (result.error) {
-                setAlert({ type: 'error', message: result.message });
-            } else {
-                router.push(`/verify/${email}`);
-                setAlert({ type: 'success', message: result.message });
+                const result = await response.json();
+                if (result.error) {
+                    setAlert({ type: 'error', message: result.message });
+                } else {
+                    router.push(`/verify/${email}`);
+                    setAlert({ type: 'success', message: result.message });
+                }
+            } catch (error) {
+                setAlert({ type: 'error', message: `${error}` });
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            setAlert({ type: 'error', message: `${error}` });
-        } finally {
-            setLoading(false);
         }
     };
     return (
