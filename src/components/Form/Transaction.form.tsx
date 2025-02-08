@@ -141,7 +141,6 @@ export const TransactionForm = () => {
         fetchCities();
     }, [fetchCities]);
     const uniqueProvinces = Array.from(new Set(cities.map((city) => city.province)));
-    console.log(cart);
     return (
         <section className="w-full pt-6">
             <div className="flex items-center justify-between">
@@ -328,7 +327,7 @@ export const TransactionForm = () => {
                             </div>
                         </div>
                     </div>
-                ) : !auth ? (
+                ) : !auth.email ? (
                     <div className="flex items-center justify-between w-full gap-3">
                         <Link
                             href={'/login'}
