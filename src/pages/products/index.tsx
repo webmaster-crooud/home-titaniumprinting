@@ -195,7 +195,7 @@ export default function ProductPage({ data }: { data: Product[] }) {
     );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
     const response = await fetch(`${BACKEND}/products`);
     const result = await response.json();
 
